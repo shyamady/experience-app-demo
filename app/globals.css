@@ -2,25 +2,255 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1a1a1a;
+  --meuse-bubble: #fff4f8;
+  --meuse-hint: #fff0f5;
+  --meuse-pink-start: #f472b6;
+  --meuse-pink-end: #db2777;
+  --meuse-glow: rgba(244, 114, 182, 0.18);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-meuse-bubble: var(--meuse-bubble);
+  --color-meuse-hint: var(--meuse-hint);
+  --color-meuse-pink-start: var(--meuse-pink-start);
+  --color-meuse-pink-end: var(--meuse-pink-end);
+  --font-family-sans: var(--font-plus-jakarta), system-ui, sans-serif;
+  --font-family-display: var(--font-nunito), system-ui, sans-serif;
+  --radius-meuse: 24px;
+  --radius-meuse-sm: 20px;
+  --radius-meuse-lg: 28px;
+  --shadow-meuse-card: 0 8px 32px rgba(219, 39, 119, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-meuse-input: 0 12px 40px rgba(219, 39, 119, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-meuse-chip: 0 2px 10px rgba(219, 39, 119, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes meuse-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.meuse-fade-in-up {
+  animation: meuse-fade-in-up 0.55s ease-out both;
+}
+
+.meuse-gradient-text {
+  background: linear-gradient(135deg, #fb7185 0%, #ec4899 50%, #db2777 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.meuse-gradient-bg {
+  background: linear-gradient(135deg, #fb7185 0%, #ec4899 50%, #db2777 100%);
+}
+
+.meuse-gradient-border {
+  background: linear-gradient(135deg, #fda4af 0%, #f472b6 50%, #ec4899 100%);
+}
+
+.font-meuse-display {
+  font-family: var(--font-nunito), system-ui, sans-serif;
+}
+
+.meuse-playful-hint {
+  font-family: var(--font-nunito), system-ui, sans-serif;
+  font-style: italic;
+  transform: rotate(-0.5deg);
+  display: inline-block;
+}
+
+@keyframes meuse-orb-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes meuse-orb-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
+@keyframes meuse-orb-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes meuse-sparkle-orbit {
+  from {
+    transform: rotate(0deg) translateX(52px) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(52px) rotate(-360deg);
+  }
+}
+
+@keyframes meuse-progress-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes meuse-status-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes meuse-status-sparkle {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes meuse-step-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.meuse-orb-ring {
+  background: conic-gradient(
+    from 0deg,
+    #fb7185,
+    #ec4899,
+    #c084fc,
+    #ec4899,
+    #fb7185
+  );
+  animation: meuse-orb-rotate 4s linear infinite;
+  mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+}
+
+.meuse-orb-core {
+  background: radial-gradient(circle at 35% 35%, #fda4af, #ec4899 55%, #c084fc);
+  animation: meuse-orb-pulse 2.4s ease-in-out infinite;
+}
+
+.meuse-orb-glow {
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.35) 0%, transparent 70%);
+  filter: blur(8px);
+  animation: meuse-orb-glow-pulse 2.4s ease-in-out infinite;
+}
+
+.meuse-orb-sparkle {
+  top: 50%;
+  left: 50%;
+  margin-top: -6px;
+  margin-left: -6px;
+  animation: meuse-sparkle-orbit 5s linear infinite;
+}
+
+.meuse-orb-sparkle-1 {
+  animation-duration: 4.5s;
+}
+
+.meuse-orb-sparkle-2 {
+  animation-duration: 6s;
+  animation-direction: reverse;
+}
+
+.meuse-orb-sparkle-3 {
+  animation-duration: 5.5s;
+  animation-delay: -1.5s;
+}
+
+.meuse-progress-fill {
+  width: 0%;
+  animation-name: meuse-progress-fill;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+.meuse-status-fade {
+  animation: meuse-status-fade 0.4s ease-out both;
+}
+
+.meuse-status-sparkle {
+  animation: meuse-status-sparkle 1.2s ease-in-out infinite;
+}
+
+.meuse-step-pulse {
+  animation: meuse-step-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meuse-orb-ring,
+  .meuse-orb-core,
+  .meuse-orb-glow,
+  .meuse-orb-sparkle,
+  .meuse-status-sparkle,
+  .meuse-step-pulse {
+    animation: none;
+  }
+
+  .meuse-status-fade {
+    animation-duration: 0.15s;
+  }
+
+  .meuse-progress-fill {
+    animation-timing-function: linear;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
 }

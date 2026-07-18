@@ -3,7 +3,10 @@
 import { useCallback, useState } from "react";
 import { AiOnboardingMessage } from "@/components/onboarding/AiOnboardingMessage";
 import { GradientGlow } from "@/components/onboarding/GradientGlow";
-import { MobileStickyActionBar } from "@/components/onboarding/MobileStickyActionBar";
+import {
+  MobileStickyActionBar,
+  MOBILE_STICKY_CTA_PADDING,
+} from "@/components/onboarding/MobileStickyActionBar";
 import { OnboardingHeader } from "@/components/onboarding/OnboardingHeader";
 import { OnboardingNavigation } from "@/components/onboarding/OnboardingNavigation";
 import { OnboardingProgress } from "@/components/onboarding/OnboardingProgress";
@@ -43,7 +46,9 @@ export function ParticipationOnboardingScreen() {
     <div className="flex min-h-dvh flex-col bg-white">
       <OnboardingHeader compact />
 
-      <main className="relative flex-1 overflow-y-auto px-4 pb-28 pt-2 sm:px-5 sm:pb-6 sm:pt-4">
+      <main
+        className={`relative flex-1 overflow-y-auto px-4 pt-2 sm:px-5 sm:pb-6 sm:pt-4 ${MOBILE_STICKY_CTA_PADDING}`}
+      >
         <GradientGlow />
 
         <div className="relative z-10 mx-auto flex w-full max-w-[700px] flex-col gap-4">
@@ -72,7 +77,9 @@ export function ParticipationOnboardingScreen() {
         </div>
       </main>
 
-      <OnboardingProgress currentStep={3} compact />
+      <div className="hidden sm:block">
+        <OnboardingProgress currentStep={3} compact />
+      </div>
 
       <MobileStickyActionBar
         backHref="/onboarding/frequency"

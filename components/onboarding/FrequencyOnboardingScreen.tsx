@@ -5,6 +5,10 @@ import { AiOnboardingMessage } from "@/components/onboarding/AiOnboardingMessage
 import { CustomFrequencyConfig } from "@/components/onboarding/CustomFrequencyConfig";
 import { FrequencyOptions } from "@/components/onboarding/FrequencyOptions";
 import { GradientGlow } from "@/components/onboarding/GradientGlow";
+import {
+  MobileStickyActionBar,
+  MOBILE_STICKY_CTA_PADDING,
+} from "@/components/onboarding/MobileStickyActionBar";
 import { OnboardingHeader } from "@/components/onboarding/OnboardingHeader";
 import { OnboardingNavigation } from "@/components/onboarding/OnboardingNavigation";
 import { OnboardingProgress } from "@/components/onboarding/OnboardingProgress";
@@ -43,13 +47,15 @@ export function FrequencyOnboardingScreen() {
   }
 
   return (
-    <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-white">
+    <div className="flex min-h-dvh flex-col bg-white">
       <OnboardingHeader compact />
 
-      <main className="relative flex min-h-0 flex-1 flex-col justify-center overflow-hidden px-4 sm:px-6">
+      <main
+        className={`relative flex-1 overflow-y-auto px-4 pt-2 sm:px-6 sm:pb-6 sm:pt-4 ${MOBILE_STICKY_CTA_PADDING}`}
+      >
         <GradientGlow />
 
-        <div className="relative z-10 mx-auto flex w-full max-w-[700px] flex-col gap-3 sm:gap-4">
+        <div className="relative z-10 mx-auto flex w-full max-w-[700px] flex-col gap-3 sm:gap-4 sm:justify-center sm:min-h-full">
           <AiOnboardingMessage
             compact
             stepLabel="STEP 2 OF 4"
@@ -69,17 +75,28 @@ export function FrequencyOnboardingScreen() {
               />
             )}
 
-            <OnboardingNavigation
-              backHref="/"
-              continueHref="/onboarding/participation"
-              canContinue={canContinue}
-              onContinue={handleContinue}
-            />
+            <div className="hidden sm:block">
+              <OnboardingNavigation
+                backHref="/"
+                continueHref="/onboarding/participation"
+                canContinue={canContinue}
+                onContinue={handleContinue}
+              />
+            </div>
           </div>
         </div>
       </main>
 
-      <OnboardingProgress currentStep={2} compact />
+      <div className="hidden sm:block">
+        <OnboardingProgress currentStep={2} compact />
+      </div>
+
+      <MobileStickyActionBar
+        backHref="/"
+        continueHref="/onboarding/participation"
+        onContinue={handleContinue}
+        canContinue={canContinue}
+      />
     </div>
   );
 }

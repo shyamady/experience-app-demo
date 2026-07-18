@@ -10,7 +10,10 @@ import { ExperienceCard } from "@/components/experiences/ExperienceCard";
 import { AiOnboardingMessage } from "@/components/onboarding/AiOnboardingMessage";
 import { GenerationErrorCard } from "@/components/onboarding/GenerationErrorCard";
 import { GradientGlow } from "@/components/onboarding/GradientGlow";
-import { MobileStickyActionBar } from "@/components/onboarding/MobileStickyActionBar";
+import {
+  MobileStickyActionBar,
+  MOBILE_STICKY_CTA_PADDING,
+} from "@/components/onboarding/MobileStickyActionBar";
 import { OnboardingHeader } from "@/components/onboarding/OnboardingHeader";
 import { OnboardingProgress } from "@/components/onboarding/OnboardingProgress";
 import {
@@ -102,7 +105,9 @@ export function GenerateOnboardingScreen() {
       <div className="flex min-h-dvh flex-col bg-white">
         <OnboardingHeader compact />
 
-        <main className="relative flex-1 overflow-y-auto px-4 pb-28 pt-2 sm:px-6 sm:pb-6 sm:py-4">
+        <main
+          className={`relative flex-1 overflow-y-auto px-4 pt-2 sm:px-6 sm:pb-6 sm:py-4 ${MOBILE_STICKY_CTA_PADDING}`}
+        >
           <GradientGlow />
 
           <div className="relative z-10 mx-auto w-full max-w-[1000px]">
@@ -110,16 +115,20 @@ export function GenerateOnboardingScreen() {
           </div>
         </main>
 
-        <OnboardingProgress currentStep={4} compact />
+        <div className="hidden sm:block">
+          <OnboardingProgress currentStep={4} compact />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-white">
+    <div className="flex min-h-dvh flex-col bg-[#fff7fa]">
       <OnboardingHeader compact />
 
-      <main className="relative flex-1 overflow-y-auto px-4 pb-28 pt-2 sm:px-6 sm:pb-6 sm:py-4">
+      <main
+        className={`relative flex-1 overflow-y-auto px-4 pt-2 sm:px-6 sm:pb-6 sm:py-4 ${MOBILE_STICKY_CTA_PADDING}`}
+      >
         <GradientGlow />
 
         <div className="relative z-10 mx-auto w-full max-w-[1000px] space-y-5">
@@ -130,7 +139,7 @@ export function GenerateOnboardingScreen() {
             supportingText={heroDescription}
           />
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             {products.map((product) => (
               <ExperienceCard
                 key={product.id}
@@ -195,7 +204,9 @@ export function GenerateOnboardingScreen() {
         </div>
       </main>
 
-      <OnboardingProgress currentStep={4} compact />
+      <div className="hidden sm:block">
+        <OnboardingProgress currentStep={4} compact />
+      </div>
 
       <MobileStickyActionBar
         backHref="/onboarding/participation"

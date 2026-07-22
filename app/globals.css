@@ -358,6 +358,115 @@
   animation: meuse-invitation-sparkle 3s ease-in-out infinite;
 }
 
+/* Referral page */
+@keyframes meuse-referral-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes meuse-referral-float {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-18px) translateX(6px);
+    opacity: 0.75;
+  }
+}
+
+@keyframes meuse-referral-ribbon {
+  0% {
+    transform: translateY(-20px) rotate(-12deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(110vh) rotate(280deg);
+    opacity: 0;
+  }
+}
+
+@keyframes meuse-referral-progress {
+  from {
+    width: 0%;
+  }
+}
+
+@keyframes meuse-referral-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(255, 79, 154, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(255, 79, 154, 0.35);
+  }
+}
+
+.meuse-referral-fade-up {
+  animation: meuse-referral-fade-up 0.7s ease-out both;
+}
+
+.meuse-referral-float {
+  animation: meuse-referral-float 6s ease-in-out infinite;
+}
+
+.meuse-referral-ribbon {
+  top: -24px;
+  animation-name: meuse-referral-ribbon;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.meuse-referral-progress-fill {
+  animation: meuse-referral-progress 1.2s ease-out both;
+}
+
+@keyframes meuse-preview-fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes meuse-preview-image-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.meuse-preview-fade {
+  animation: meuse-preview-fade 0.4s ease-out both;
+}
+
+.meuse-preview-image {
+  animation: meuse-preview-image-fade 0.45s ease-out both;
+}
+
+.meuse-preview-card {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.meuse-product-price {
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+
 @keyframes slideIn {
   from {
     transform: translateX(-100%);
@@ -376,7 +485,12 @@
   .meuse-step-pulse,
   .meuse-pass-shimmer::after,
   .meuse-confetti-piece,
-  .meuse-invitation-sparkle {
+  .meuse-invitation-sparkle,
+  .meuse-referral-float,
+  .meuse-referral-ribbon,
+  .meuse-referral-reward-glow,
+  .meuse-preview-fade,
+  .meuse-preview-image {
     animation: none;
   }
 

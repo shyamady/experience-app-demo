@@ -17,7 +17,15 @@ import {
 } from "@/lib/onboarding/suggestions";
 import { saveOnboardingData } from "@/lib/onboarding/storage";
 
-export function RootOnboardingScreen() {
+type RootOnboardingScreenProps = {
+  hideHeader?: boolean;
+  className?: string;
+};
+
+export function RootOnboardingScreen({
+  hideHeader = false,
+  className = "",
+}: RootOnboardingScreenProps) {
   const router = useRouter();
   const [inputValue, setInputValue] = useState("");
   const [selectedId, setSelectedId] = useState<SuggestionId | null>(null);
@@ -59,11 +67,15 @@ export function RootOnboardingScreen() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <OnboardingHeader />
+    <div
+      className={`flex min-h-screen flex-col ${
+        hideHeader ? "bg-transparent" : "bg-white"
+      } ${className}`}
+    >
+      {!hideHeader && <OnboardingHeader />}
 
       <main className="relative flex flex-1 flex-col items-center justify-center px-4 pb-4 sm:px-6">
-        <GradientGlow />
+        {!hideHeader && <GradientGlow />}
 
         <div className="relative z-10 w-full max-w-[760px] space-y-5 sm:space-y-6">
           <AiMessageBubble />

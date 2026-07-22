@@ -17,7 +17,7 @@ export function DashboardSidebar({ onNavigate }: DashboardSidebarProps) {
     <aside className="flex h-full w-56 shrink-0 flex-col border-r border-pink-100 bg-white">
       <div className="border-b border-pink-50 px-3 py-4">
         <Link
-          href="/dashboard"
+          href="/dashboard/products"
           onClick={onNavigate}
           className="mb-3 block px-1 font-meuse-display text-xl font-extrabold tracking-tight meuse-gradient-text"
         >
@@ -29,9 +29,7 @@ export function DashboardSidebar({ onNavigate }: DashboardSidebarProps) {
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 pb-4">
         {DASHBOARD_NAV_ITEMS.map((item) => {
           const isActive =
-            item.href !== "#" &&
-            (pathname === item.href ||
-              (item.href !== "/dashboard" && pathname.startsWith(item.href)));
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
             <Link

@@ -18,7 +18,7 @@ export function DashboardShell({
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
-    <div className="flex min-h-dvh bg-zinc-50">
+    <div className="flex min-h-dvh bg-white">
         <div className="hidden md:flex">
           <DashboardSidebar />
         </div>

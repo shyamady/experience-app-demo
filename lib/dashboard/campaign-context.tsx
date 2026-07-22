@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -12,11 +13,12 @@ import type { LaunchData } from "@/lib/launch/types";
 import {
   createNewCampaign,
   getActiveCampaign,
-  getCampaigns,
   getCampaignsState,
+  getDefaultCampaignsState,
   publishLaunch as publishLaunchToStorage,
   saveCampaign,
   switchCampaign as switchCampaignInStorage,
+  type CampaignsState,
 } from "@/lib/launch/storage";
 
 type CampaignContextValue = {
@@ -30,25 +32,32 @@ type CampaignContextValue = {
 
 const CampaignContext = createContext<CampaignContextValue | null>(null);
 
-function readState() {
-  return {
-    campaigns: getCampaigns(),
-    activeCampaign: getActiveCampaign(),
-  };
+function resolveActiveCampaign(state: CampaignsState): LaunchData {
+  return (
+    state.campaigns.find((campaign) => campaign.id === state.activeCampaignId) ??
+    state.campaigns[0]
+  );
 }
 
 export function CampaignProvider({ children }: { children: ReactNode }) {
-  const [version, setVersion] = useState(0);
+  const [campaignState, setCampaignState] = useState<CampaignsState>(
+    getDefaultCampaignsState,
+  );
 
   const refresh = useCallback(() => {
-    setVersion((current) => current + 1);
+    setCampaignState(getCampaignsState());
   }, []);
 
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
   const { campaigns, activeCampaign } = useMemo(() => {
-    void version;
-    void getCampaignsState();
-    return readState();
-  }, [version]);
+    return {
+      campaigns: campaignState.campaigns,
+      activeCampaign: resolveActiveCampaign(campaignState),
+    };
+  }, [campaignState]);
 
   const switchCampaign = useCallback(
     (id: string) => {

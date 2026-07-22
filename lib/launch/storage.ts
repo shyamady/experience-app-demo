@@ -197,6 +197,10 @@ function createDefaultCampaignsState(): CampaignsState {
   };
 }
 
+export function getDefaultCampaignsState(): CampaignsState {
+  return createDefaultCampaignsState();
+}
+
 function mergeCampaignIntoList(
   campaigns: LaunchData[],
   campaign: LaunchData,

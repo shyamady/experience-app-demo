@@ -321,6 +321,43 @@
   }
 }
 
+@keyframes meuse-confetti-fall {
+  0% {
+    transform: translateY(-12px) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(110vh) rotate(540deg);
+    opacity: 0;
+  }
+}
+
+@keyframes meuse-invitation-sparkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.85) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1) translateY(-4px);
+  }
+}
+
+.meuse-confetti-piece {
+  top: -12px;
+  animation-name: meuse-confetti-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.meuse-invitation-sparkle {
+  animation: meuse-invitation-sparkle 3s ease-in-out infinite;
+}
+
 @keyframes slideIn {
   from {
     transform: translateX(-100%);
@@ -337,7 +374,9 @@
   .meuse-orb-sparkle,
   .meuse-status-sparkle,
   .meuse-step-pulse,
-  .meuse-pass-shimmer::after {
+  .meuse-pass-shimmer::after,
+  .meuse-confetti-piece,
+  .meuse-invitation-sparkle {
     animation: none;
   }
 

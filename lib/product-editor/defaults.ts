@@ -22,6 +22,7 @@ export const DEFAULT_EDITABLE_PRODUCT: EditableProduct = {
   experienceTitle: "Inside Sarah Morgan's Nashville Recording Sessions",
   creatorName: "Sarah Morgan",
   creatorAvatarUrl: CREATOR_AVATAR,
+  availableSessions: ["August 19", "August 26", "September 2"],
 };
 
 export function getDefaultEditableProduct(id?: string): EditableProduct {

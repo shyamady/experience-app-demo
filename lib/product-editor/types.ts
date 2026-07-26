@@ -24,6 +24,7 @@ export type EditableProduct = {
   experienceTitle: string;
   creatorName: string;
   creatorAvatarUrl: string;
+  availableSessions: string[];
 };
 
 export const ACCESS_BADGE_OPTIONS: AccessBadge[] = [

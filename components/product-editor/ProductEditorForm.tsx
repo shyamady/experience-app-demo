@@ -203,6 +203,29 @@ export function ProductEditorForm({ product, onChange }: ProductEditorFormProps)
         </div>
       </div>
 
+      <div>
+        <label className={labelClassName}>Available Sessions</label>
+        <p className="mb-2 text-xs text-zinc-500">
+          Dates this product can be purchased for. Managed from Calendar.
+        </p>
+        {product.availableSessions.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-pink-100 px-3 py-3 text-sm text-zinc-500">
+            No sessions yet. Add this product to a session in Calendar.
+          </p>
+        ) : (
+          <ul className="flex flex-wrap gap-2">
+            {product.availableSessions.map((session) => (
+              <li
+                key={session}
+                className="rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-pink-700"
+              >
+                {session}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       <div className="border-t border-pink-50 pt-4">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">
           Preview context

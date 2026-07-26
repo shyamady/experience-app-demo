@@ -15,6 +15,23 @@ export type PriceType = "one-time" | "monthly";
 
 export type AvailabilityKind = "unlimited" | "limited" | "open";
 
+export type ProductInventory = {
+  remaining: number | null;
+  soldOut: boolean;
+};
+
+export type ExperienceDateLabel = "Selling Fast" | "Sold Out" | null;
+
+export type ExperienceSessionDate = {
+  id: string;
+  date: string;
+  displayDate: string;
+  time: string;
+  timezone: string;
+  label: ExperienceDateLabel;
+  products: Record<string, ProductInventory>;
+};
+
 export type PublicExperienceProduct = {
   id: string;
   title: string;
@@ -43,12 +60,8 @@ export type PublicExperienceData = {
     schedule: string;
     coverImageUrl: string;
     heroBadge: ExperienceHeroBadge;
-    about: {
-      what: string;
-      why: string;
-      how: string;
-      afterPurchase: string;
-    };
+    about: string;
   };
   products: PublicExperienceProduct[];
+  dates: ExperienceSessionDate[];
 };

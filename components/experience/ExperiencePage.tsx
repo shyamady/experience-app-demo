@@ -1,54 +1,147 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CreatorProfile } from "@/components/experience/CreatorProfile";
+import { ExperienceDateSelector } from "@/components/experience/ExperienceDateSelector";
 import { ExperienceHero } from "@/components/experience/ExperienceHero";
+import { MobileCheckoutBar } from "@/components/experience/MobileCheckoutBar";
 import { ProductSelector } from "@/components/experience/ProductSelector";
 import { PurchaseSummary } from "@/components/experience/PurchaseSummary";
-import { TrustSection } from "@/components/experience/TrustSection";
 import { GradientGlow } from "@/components/onboarding/GradientGlow";
 import { getMaxQuantity } from "@/lib/experience/formatting";
 import { getMockExperience } from "@/lib/experience/mock-data";
 
+const DEFAULT_DATE_ID = "aug-19";
+const INVENTORY_REFRESH_MS = 280;
+
 export function ExperiencePage() {
   const router = useRouter();
   const data = useMemo(() => getMockExperience(), []);
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedDateId, setSelectedDateId] = useState<string | null>(
+    DEFAULT_DATE_ID,
+  );
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(
+    null,
+  );
   const [quantity, setQuantity] = useState(1);
+  const [availabilityWarning, setAvailabilityWarning] = useState<string | null>(
+    null,
+  );
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(
+    `Showing availability for ${
+      data.dates.find((date) => date.id === DEFAULT_DATE_ID)?.displayDate ??
+      "your selected session"
+    }`,
+  );
+  const refreshTimeoutRef = useRef<number | null>(null);
+
+  const selectedSession = useMemo(
+    () => data.dates.find((date) => date.id === selectedDateId) ?? null,
+    [data.dates, selectedDateId],
+  );
 
   const selectedProduct = useMemo(
-    () => data.products.find((product) => product.id === selectedProductId) ?? null,
+    () =>
+      data.products.find((product) => product.id === selectedProductId) ?? null,
     [data.products, selectedProductId],
+  );
+
+  const selectedInventory = useMemo(() => {
+    if (!selectedSession || !selectedProductId) return null;
+    return selectedSession.products[selectedProductId] ?? null;
+  }, [selectedProductId, selectedSession]);
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current !== null) {
+        window.clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleDateSelect = useCallback(
+    (dateId: string) => {
+      if (dateId === selectedDateId) return;
+
+      const nextSession = data.dates.find((date) => date.id === dateId);
+      if (!nextSession) return;
+
+      if (refreshTimeoutRef.current !== null) {
+        window.clearTimeout(refreshTimeoutRef.current);
+      }
+
+      const hadSelection = Boolean(selectedProductId);
+      const nextInventory = selectedProductId
+        ? nextSession.products[selectedProductId]
+        : null;
+      const selectionUnavailable =
+        hadSelection && (!nextInventory || nextInventory.soldOut);
+
+      setSelectedDateId(dateId);
+      setIsRefreshing(true);
+      setConfirmationMessage(null);
+
+      if (selectionUnavailable) {
+        setSelectedProductId(null);
+        setQuantity(1);
+        setAvailabilityWarning(
+          "Your previous selection isn't available on this date. Please choose another ticket.",
+        );
+      } else {
+        setAvailabilityWarning(null);
+        if (hadSelection) setQuantity(1);
+      }
+
+      refreshTimeoutRef.current = window.setTimeout(() => {
+        setConfirmationMessage(
+          `Showing availability for ${nextSession.displayDate}`,
+        );
+        setIsRefreshing(false);
+        refreshTimeoutRef.current = null;
+      }, INVENTORY_REFRESH_MS);
+    },
+    [data.dates, selectedDateId, selectedProductId],
   );
 
   const handleSelect = useCallback((productId: string) => {
     setSelectedProductId(productId);
     setQuantity(1);
+    setAvailabilityWarning(null);
   }, []);
 
   const handleQuantityChange = useCallback(
     (nextQuantity: number) => {
-      if (!selectedProduct) return;
+      if (!selectedProduct || !selectedInventory) return;
 
       const max = getMaxQuantity(
-        selectedProduct.remainingSpots,
+        selectedInventory.remaining,
         selectedProduct.availabilityKind,
       );
       setQuantity(Math.min(Math.max(1, nextQuantity), max));
     },
-    [selectedProduct],
+    [selectedInventory, selectedProduct],
   );
 
   const handleCheckout = useCallback(() => {
-    if (!selectedProduct) return;
+    if (!selectedProduct || !selectedSession || !selectedInventory) return;
+    if (selectedInventory.soldOut || isRefreshing) return;
 
     const params = new URLSearchParams({
       product: selectedProduct.id,
       quantity: String(quantity),
+      date: selectedSession.id,
     });
     router.push(`/experience/checkout?${params.toString()}`);
-  }, [quantity, router, selectedProduct]);
+  }, [
+    isRefreshing,
+    quantity,
+    router,
+    selectedInventory,
+    selectedProduct,
+    selectedSession,
+  ]);
 
   return (
     <div className="relative min-h-dvh bg-gradient-to-b from-meuse-bubble via-white to-white">
@@ -76,33 +169,28 @@ export function ExperiencePage() {
               <h2 className="text-xl font-bold text-zinc-900 sm:text-2xl">
                 About the Experience
               </h2>
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <AboutBlock
-                  title="What Sarah is doing"
-                  body={data.experience.about.what}
-                />
-                <AboutBlock
-                  title="Why it's special"
-                  body={data.experience.about.why}
-                />
-                <AboutBlock
-                  title="How you can participate"
-                  body={data.experience.about.how}
-                />
-                <AboutBlock
-                  title="After you purchase"
-                  body={data.experience.about.afterPurchase}
-                />
-              </div>
+              <p className="mt-4 text-sm leading-relaxed text-zinc-600 sm:text-base">
+                {data.experience.about}
+              </p>
             </section>
+
+            <ExperienceDateSelector
+              dates={data.dates}
+              selectedDateId={selectedDateId}
+              onSelect={handleDateSelect}
+              isRefreshing={isRefreshing}
+            />
 
             <ProductSelector
               products={data.products}
+              session={selectedSession}
               selectedProductId={selectedProductId}
               onSelect={handleSelect}
+              isRefreshing={isRefreshing}
+              confirmationMessage={confirmationMessage}
+              availabilityWarning={availabilityWarning}
             />
 
-            <TrustSection />
             <CreatorProfile creator={data.creator} />
           </div>
 
@@ -110,31 +198,26 @@ export function ExperiencePage() {
             <div className="sticky top-8">
               <PurchaseSummary
                 product={selectedProduct}
+                session={selectedSession}
+                inventory={selectedInventory}
                 quantity={quantity}
                 onQuantityChange={handleQuantityChange}
                 onCheckout={handleCheckout}
+                availabilityWarning={availabilityWarning}
               />
             </div>
           </div>
         </div>
       </div>
 
-      <PurchaseSummary
+      <MobileCheckoutBar
         product={selectedProduct}
+        session={selectedSession}
+        inventory={selectedInventory}
         quantity={quantity}
         onQuantityChange={handleQuantityChange}
         onCheckout={handleCheckout}
-        variant="mobile"
       />
-    </div>
-  );
-}
-
-function AboutBlock({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="rounded-xl bg-meuse-hint/70 p-4">
-      <h3 className="text-sm font-semibold text-zinc-900">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">{body}</p>
     </div>
   );
 }

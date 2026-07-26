@@ -8,6 +8,7 @@ import {
   getAccessBadgeStyles,
 } from "@/lib/experience/formatting";
 import {
+  getExperienceDateById,
   getExperienceProductById,
   getMockExperience,
 } from "@/lib/experience/mock-data";
@@ -15,11 +16,17 @@ import {
 export function ExperienceCheckoutScreen() {
   const searchParams = useSearchParams();
   const productId = searchParams.get("product");
+  const dateId = searchParams.get("date");
   const quantity = Math.max(1, Number(searchParams.get("quantity") ?? "1") || 1);
 
   const product = useMemo(
     () => (productId ? getExperienceProductById(productId) : undefined),
     [productId],
+  );
+
+  const session = useMemo(
+    () => (dateId ? getExperienceDateById(dateId) : undefined),
+    [dateId],
   );
 
   const experience = useMemo(() => getMockExperience(), []);
@@ -86,6 +93,12 @@ export function ExperienceCheckoutScreen() {
 
           <div className="mt-6 space-y-3 border-t border-pink-50 pt-5 text-sm">
             <Row label="Creator" value={experience.creator.name} />
+            {session && (
+              <Row
+                label="Date"
+                value={`${session.displayDate} · ${session.time} ${session.timezone}`}
+              />
+            )}
             <Row label="Quantity" value={String(quantity)} />
             <Row
               label="Price"

@@ -4,9 +4,15 @@ export type DashboardNavItem = {
   icon: DashboardNavIcon;
 };
 
-export type DashboardNavIcon = "product" | "orders" | "attendees" | "calendar";
+export type DashboardNavIcon =
+  | "create"
+  | "product"
+  | "orders"
+  | "attendees"
+  | "calendar";
 
 export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
+  { label: "Create", href: "/dashboard/create", icon: "create" },
   { label: "Products", href: "/dashboard/products", icon: "product" },
   { label: "Calendar", href: "/dashboard/calendar", icon: "calendar" },
   { label: "Orders", href: "/dashboard/orders", icon: "orders" },

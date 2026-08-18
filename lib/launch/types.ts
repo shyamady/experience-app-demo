@@ -3,6 +3,7 @@ import type {
   FrequencyId,
 } from "@/lib/onboarding/frequency";
 import type { ExperienceProduct } from "@/lib/onboarding/experiences";
+import type { ProjectMilestone } from "@/types/launch";
 
 export type LaunchLocationType = "in-person" | "online" | "hybrid";
 
@@ -12,10 +13,16 @@ export type LaunchSalesMode = "preview" | "waitlist" | "live";
 
 export type ValidationDecision = "pending" | "confirmed" | "cancelled" | null;
 
+export type ProjectOutlineItem = {
+  title: string;
+  description: string;
+};
+
 export type LaunchData = {
   id: string;
   name: string;
   title: string;
+  subtitle?: string;
   description: string;
   firstDate: string;
   locationType: LaunchLocationType | null;
@@ -41,4 +48,15 @@ export type LaunchData = {
   creatorName: string;
   coverImageUrl: string;
   avatarUrl: string;
+  whyItMatters?: string;
+  creatorNote?: string;
+  outlineHeading?: string;
+  outline?: ProjectOutlineItem[];
+  communityMakesPossible?: string;
+  estimatedBudget?: string;
+  estimatedTimeToLaunch?: string;
+  suggestedMinimumGoal?: string;
+  recommendedCampaignLength?: string;
+  estimateAssumptions?: string;
+  milestones?: ProjectMilestone[];
 };

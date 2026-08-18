@@ -7,16 +7,24 @@ type LaunchProductsSummaryProps = {
 
 export function LaunchProductsSummary({ products }: LaunchProductsSummaryProps) {
   const participation = products.filter(
-    (product) => product.category !== "SPONSOR",
+    (product) =>
+      product.category !== "SPONSOR" &&
+      product.category !== "PRESENTING SPONSOR" &&
+      product.category !== "PARTNER",
   );
-  const sponsors = products.filter((product) => product.category === "SPONSOR");
+  const sponsors = products.filter(
+    (product) =>
+      product.category === "SPONSOR" ||
+      product.category === "PRESENTING SPONSOR" ||
+      product.category === "PARTNER",
+  );
 
   return (
     <div className="space-y-4">
       {participation.length > 0 && (
         <div>
           <h3 className="mb-2 text-sm font-semibold text-zinc-900">
-            Generated products
+            Participation styles
           </h3>
           <div className="space-y-2">
             {participation.map((product) => (
@@ -29,7 +37,7 @@ export function LaunchProductsSummary({ products }: LaunchProductsSummaryProps) 
       {sponsors.length > 0 && (
         <div>
           <h3 className="mb-2 text-sm font-semibold text-zinc-900">
-            Sponsor tiers
+            Partners
           </h3>
           <div className="space-y-2">
             {sponsors.map((product) => (

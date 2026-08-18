@@ -1,3 +1,4 @@
+import { normalizeLaunchResponse } from "@/lib/launch/validate";
 import type { LaunchResponse } from "@/types/launch";
 
 const STORAGE_KEY = "meuse-generated-launch";
@@ -28,7 +29,11 @@ export function getGeneratedLaunch(): GeneratedLaunchState | null {
     if (typeof parsed !== "object" || parsed === null) return null;
 
     const state = parsed as GeneratedLaunchState;
-    if (state.status === "success" && state.data) return state;
+    if (state.status === "success" && state.data) {
+      const data = normalizeLaunchResponse(state.data);
+      if (!data) return null;
+      return { status: "success", data };
+    }
     if (state.status === "error") return state;
 
     return null;

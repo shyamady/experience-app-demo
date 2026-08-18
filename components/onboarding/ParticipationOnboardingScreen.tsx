@@ -15,12 +15,13 @@ import {
   DEFAULT_PARTICIPATION_SELECTION,
   type ParticipationId,
 } from "@/lib/onboarding/participation";
-import { saveOnboardingData } from "@/lib/onboarding/storage";
+import { getOnboardingData, saveOnboardingData } from "@/lib/onboarding/storage";
 
 export function ParticipationOnboardingScreen() {
-  const [selectedIds, setSelectedIds] = useState<Set<ParticipationId>>(
-    () => new Set(DEFAULT_PARTICIPATION_SELECTION),
-  );
+  const [selectedIds, setSelectedIds] = useState<Set<ParticipationId>>(() => {
+    const saved = getOnboardingData().participationIds;
+    return new Set(saved.length > 0 ? saved : DEFAULT_PARTICIPATION_SELECTION);
+  });
 
   const toggleSelection = useCallback((id: ParticipationId) => {
     setSelectedIds((previous) => {
@@ -55,9 +56,9 @@ export function ParticipationOnboardingScreen() {
           <AiOnboardingMessage
             compact
             stepLabel="STEP 3 OF 4"
-            headline="How can fans participate?"
-            supportingText="Choose the ways fans can engage with what you're doing."
-            hint="Select one or more"
+            headline="How can your community help bring it to life?"
+            supportingText="Choose meaningful ways people can shape, create, or join the project."
+            hint="Select one or more participation styles"
           />
 
           <ParticipationOptions
@@ -67,7 +68,7 @@ export function ParticipationOnboardingScreen() {
 
           <div className="hidden sm:block">
             <OnboardingNavigation
-              backHref="/onboarding/frequency"
+              backHref="/onboarding/needs"
               continueHref="/onboarding/generating"
               canContinue={canContinue}
               onContinue={handleContinue}
@@ -82,7 +83,7 @@ export function ParticipationOnboardingScreen() {
       </div>
 
       <MobileStickyActionBar
-        backHref="/onboarding/frequency"
+        backHref="/onboarding/needs"
         continueHref="/onboarding/generating"
         onContinue={handleContinue}
         canContinue={canContinue}

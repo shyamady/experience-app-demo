@@ -1,56 +1,69 @@
 export type ParticipationId =
+  | "shape"
+  | "contribute"
+  | "co-create"
+  | "join"
+  | "follow"
+  | "partner"
   | "watch"
   | "influence"
   | "interact"
-  | "join"
   | "support";
 
 export type ParticipationOption = {
   id: ParticipationId;
   title: string;
   description: string;
-  icon: "eye" | "gamepad" | "chat" | "users" | "heart";
+  icon: "eye" | "gamepad" | "chat" | "users" | "heart" | "sparkle";
 };
 
 export const PARTICIPATION_OPTIONS: ParticipationOption[] = [
   {
-    id: "watch",
-    title: "Watch",
+    id: "shape",
+    title: "Shape It",
     description:
-      "Fans can watch behind-the-scenes moments, live updates, or replays.",
-    icon: "eye",
-  },
-  {
-    id: "influence",
-    title: "Influence",
-    description:
-      "Fans can vote, give feedback, and help shape what happens.",
+      "Vote, give feedback, and help make key creative decisions.",
     icon: "gamepad",
   },
   {
-    id: "interact",
-    title: "Interact",
+    id: "contribute",
+    title: "Contribute",
     description:
-      "Fans can ask questions, join chats, or connect in small groups.",
+      "Submit ideas, stories, music, designs, movement, or other material.",
     icon: "chat",
+  },
+  {
+    id: "co-create",
+    title: "Co-create",
+    description:
+      "Join planning, workshops, rehearsals, or the creative process.",
+    icon: "sparkle",
   },
   {
     id: "join",
     title: "Join",
     description:
-      "Fans can join you in person or attend exclusive experiences.",
+      "Attend, perform, travel, participate, or become part of the final project.",
     icon: "users",
   },
   {
-    id: "support",
-    title: "Support",
+    id: "follow",
+    title: "Follow the Journey",
     description:
-      "Fans can support your project, mission, or next step.",
+      "Get private updates, behind-the-scenes access, and early previews.",
+    icon: "eye",
+  },
+  {
+    id: "partner",
+    title: "Partner",
+    description:
+      "Support the project with funding, products, expertise, space, or services.",
     icon: "heart",
   },
 ];
 
 export const DEFAULT_PARTICIPATION_SELECTION: ParticipationId[] = [
-  "watch",
+  "shape",
   "join",
+  "follow",
 ];

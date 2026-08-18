@@ -1,178 +1,207 @@
-import type { LaunchData } from "@/lib/launch/types";
-import type { ExperienceProduct } from "@/lib/onboarding/experiences";
-import { ExperienceCategoryPill } from "@/components/experiences/ExperienceCategoryPill";
-import { DemandValidationPublicCard } from "@/components/launch/DemandValidation";
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { CoCreatePanel } from "@/components/launch/public/CoCreatePanel";
+import { LaunchHero } from "@/components/launch/public/LaunchHero";
+import { LaunchTabs, type LaunchTabId } from "@/components/launch/public/LaunchTabs";
+import { LiveProgressSection } from "@/components/launch/public/LiveProgressSection";
+import { ParticipatePanel } from "@/components/launch/public/ParticipatePanel";
+import { ProjectStory } from "@/components/launch/public/ProjectStory";
+import { SponsorshipSection } from "@/components/launch/public/SponsorshipSection";
+import { StickyJoinBar } from "@/components/launch/public/StickyJoinBar";
+import { UpdatesPanel } from "@/components/launch/public/UpdatesPanel";
 import {
-  formatFirstDateWithFrequency,
-  formatSpotsAvailable,
-  getLocationDisplay,
-} from "@/lib/launch/formatting";
+  getPublicCoCreate,
+  getPublicMomentum,
+  getPublicUpdates,
+} from "@/lib/dashboard/community";
+import type { LaunchData } from "@/lib/launch/types";
+import {
+  getLowestAvailablePrice,
+  getPublicOffers,
+  isLiveLaunch,
+} from "@/lib/launch/public-view";
 
 type PublicLandingPageProps = {
   data: LaunchData;
   compact?: boolean;
 };
 
-function getCtaLabel(data: LaunchData): string {
-  if (data.status !== "published") return "Preview only";
-  if (data.salesMode === "waitlist") return "Join Waitlist";
-  return "Choose an Experience";
-}
-
-const DEMO_ITINERARY = [
-  "Day 1 — Neighborhood exploration and local food",
-  "Day 2 — Hidden gems and creator meetup",
-  "Day 3 — Fan experience finale",
-];
-
 export function PublicLandingPage({ data, compact = false }: PublicLandingPageProps) {
-  const dateFrequency = formatFirstDateWithFrequency(data);
-  const location = getLocationDisplay(data);
-  const spots = formatSpotsAvailable(data.totalSpots);
+  const router = useRouter();
+  const [tab, setTab] = useState<LaunchTabId>("participate");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showSticky, setShowSticky] = useState(false);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const participateRef = useRef<HTMLDivElement>(null);
 
-  const participationProducts = data.products.filter(
-    (product) => product.active && product.category !== "SPONSOR",
+  const offers = useMemo(() => getPublicOffers(data), [data]);
+  const fromPrice = getLowestAvailablePrice(offers.participation);
+  const selected = offers.participation.find(
+    (offer) => offer.product.id === selectedId,
+  )?.product ?? offers.sponsorship.find((offer) => offer.product.id === selectedId)?.product ?? null;
+  const canJoin = isLiveLaunch(data);
+  const waitlist = data.salesMode === "waitlist";
+
+  const coCreate = useMemo(
+    () => getPublicCoCreate(data.id),
+    [data.id],
   );
-  const sponsorProducts = data.products.filter(
-    (product) => product.active && product.category === "SPONSOR",
-  );
+  const updates = useMemo(() => getPublicUpdates(data.id), [data.id]);
+  const momentum = useMemo(() => getPublicMomentum(data.id), [data.id]);
+
+  useEffect(() => {
+    if (compact) return;
+    const node = progressRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowSticky(!entry.isIntersecting);
+      },
+      { threshold: 0.15 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [compact]);
+
+  function scrollToParticipate() {
+    setTab("participate");
+    window.requestAnimationFrame(() => {
+      participateRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  function joinProduct(productId: string) {
+    if (!canJoin) return;
+    setSelectedId(productId);
+    router.push(
+      `/experience/checkout?campaign=${encodeURIComponent(data.slug)}&product=${encodeURIComponent(productId)}`,
+    );
+  }
+
+  function handleStickyJoin() {
+    if (selectedId) {
+      joinProduct(selectedId);
+      return;
+    }
+    scrollToParticipate();
+  }
 
   return (
     <div
-      className={`overflow-hidden bg-white ${
-        compact ? "rounded-[2rem] shadow-meuse-card" : "min-h-dvh"
+      className={`bg-white ${
+        compact ? "overflow-hidden rounded-[2rem] shadow-meuse-card" : "min-h-dvh"
       }`}
     >
-      <div className="relative bg-white">
-        <div className={`relative w-full ${compact ? "h-36" : "h-44 sm:h-52"}`}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={data.coverImageUrl}
-            alt=""
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+      {!compact && (
+        <header className="sticky top-0 z-30 border-b border-zinc-100 bg-white/95 backdrop-blur-sm">
+          <div className="mx-auto flex h-12 max-w-[760px] items-center justify-between px-5">
+            <span className="font-meuse-display text-lg font-extrabold tracking-tight meuse-gradient-text">
+              meuse
+            </span>
+            <span className="text-xs font-medium text-zinc-400">Launch</span>
+          </div>
+        </header>
+      )}
+
+      <div className={compact ? "" : "mx-auto max-w-[760px]"}>
+        <LaunchHero data={data} compact={compact} />
+
+        <div className={compact ? "px-4" : "px-5 sm:px-6"}>
+          <div ref={progressRef} className={compact ? "mt-5" : "mt-6"}>
+            <LiveProgressSection data={data} />
+          </div>
+
+          <div className="mt-5">
+            <h2 className="text-lg font-bold tracking-tight text-zinc-900">
+              Join the Project
+            </h2>
+            <button
+              type="button"
+              onClick={scrollToParticipate}
+              className={`mt-3 w-full rounded-full py-3.5 text-sm font-semibold ${
+                canJoin
+                  ? "text-white meuse-gradient-bg shadow-lg shadow-pink-200/50"
+                  : "bg-zinc-100 text-zinc-400"
+              }`}
+            >
+              {data.status !== "published"
+                ? "Preview only"
+                : waitlist
+                  ? "Join Waitlist"
+                  : "See Ways to Join"}
+            </button>
+            <p className="mt-2 text-center text-sm text-zinc-400">
+              Choose how you want to participate.
+            </p>
+          </div>
         </div>
 
-        <div className={compact ? "px-4 pb-6" : "mx-auto max-w-lg px-5 pb-10"}>
-          <div className="relative z-10 flex justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={data.avatarUrl}
-              alt=""
-              className={`relative rounded-full border-[5px] border-white object-cover shadow-[0_8px_24px_rgba(0,0,0,0.12)] ${
-                compact
-                  ? "mt-[-2.25rem] h-[4.5rem] w-[4.5rem]"
-                  : "mt-[-3.5rem] h-28 w-28 sm:mt-[-4rem] sm:h-[7.5rem] sm:w-[7.5rem]"
-              }`}
+        <div className={compact ? "mt-6" : "mt-8"}>
+          <LaunchTabs
+            active={tab}
+            onChange={setTab}
+            sticky={!compact}
+          />
+
+          <div
+            ref={participateRef}
+            className={compact ? "scroll-mt-4 px-4 pt-5" : "scroll-mt-28 px-5 pt-5 sm:px-6"}
+          >
+            {tab === "participate" && (
+              <ParticipatePanel
+                offers={offers.participation}
+                selectedId={selectedId}
+                canJoin={canJoin}
+                waitlist={waitlist}
+                onSelect={setSelectedId}
+                onJoin={joinProduct}
+              />
+            )}
+            {tab === "cocreate" && (
+              <CoCreatePanel
+                entries={coCreate}
+                momentum={momentum}
+                onJoin={scrollToParticipate}
+              />
+            )}
+            {tab === "updates" && (
+              <UpdatesPanel
+                posts={updates}
+                momentum={momentum}
+                onCta={() => setTab("cocreate")}
+              />
+            )}
+          </div>
+        </div>
+
+        <div className={compact ? "px-4 pb-6" : "px-5 pb-28 sm:px-6"}>
+          <div className="mt-10">
+            <SponsorshipSection
+              offers={offers.sponsorship}
+              creatorName={data.creatorName}
+              canJoin={canJoin}
+              onJoin={joinProduct}
             />
           </div>
 
-          <div className="mt-4 text-center sm:mt-5">
-            <p className="text-sm font-medium text-pink-500">
-              {data.creatorName}
-            </p>
-            <h1 className="mt-1.5 text-xl font-bold text-zinc-900 sm:text-2xl">
-              {data.title || "Your launch title"}
-            </h1>
+          <div className="mt-10">
+            <ProjectStory data={data} />
           </div>
-
-          {(dateFrequency || location || spots) && (
-            <div className="mt-5 space-y-1 rounded-meuse-sm bg-meuse-hint px-4 py-3 text-center text-sm text-zinc-600">
-              {dateFrequency && (
-                <p className="font-medium text-zinc-800">{dateFrequency}</p>
-              )}
-              {location && <p>{location}</p>}
-              {spots && <p className="text-pink-600">{spots}</p>}
-            </div>
-          )}
-
-          <DemandValidationPublicCard data={data} />
-
-          {participationProducts.length > 0 && (
-            <section className="mt-6">
-              <h2 className="mb-3 text-sm font-semibold text-zinc-900">
-                Ways to participate
-              </h2>
-              <div className="space-y-3">
-                {participationProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {sponsorProducts.length > 0 && (
-            <section className="mt-6">
-              <h2 className="mb-3 text-sm font-semibold text-zinc-900">
-                Sponsor opportunities
-              </h2>
-              <div className="space-y-3">
-                {sponsorProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          <section className="mt-6">
-            <h2 className="mb-3 text-sm font-semibold text-zinc-900">
-              Itinerary preview
-            </h2>
-            <div className="rounded-meuse-sm bg-white p-4 shadow-meuse-chip">
-              <ul className="space-y-2">
-                {DEMO_ITINERARY.map((item) => (
-                  <li key={item} className="text-sm text-zinc-600">
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-
-          <button
-            type="button"
-            disabled={data.status !== "published"}
-            className={`mt-6 w-full rounded-full py-3.5 text-sm font-semibold transition-all ${
-              data.status === "published"
-                ? "text-white meuse-gradient-bg shadow-lg shadow-pink-200/50"
-                : "bg-zinc-100 text-zinc-400"
-            }`}
-          >
-            {getCtaLabel(data)}
-          </button>
         </div>
       </div>
-    </div>
-  );
-}
 
-function ProductCard({ product }: { product: ExperienceProduct }) {
-  return (
-    <div className="overflow-hidden rounded-meuse-sm bg-white shadow-meuse-chip">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={product.imageUrl}
-        alt=""
-        className="h-28 w-full object-cover"
-      />
-      <div className="p-3">
-        <ExperienceCategoryPill category={product.category} />
-        <p className="mt-1 font-semibold text-zinc-900">{product.title}</p>
-        <p className="mt-1 line-clamp-2 text-xs text-zinc-500">
-          {product.description}
-        </p>
-        <div className="mt-2 flex items-center justify-between text-sm">
-          <span className="font-semibold text-zinc-900">
-            ${product.price.toLocaleString()}
-          </span>
-          <span className="text-xs text-zinc-400">
-            {product.spots === "unlimited"
-              ? "Unlimited"
-              : `${product.spots} spots`}
-          </span>
-        </div>
-      </div>
+      {!compact && showSticky && (
+        <StickyJoinBar
+          data={data}
+          selected={selected}
+          fromPrice={fromPrice}
+          canJoin={canJoin}
+          onJoin={handleStickyJoin}
+        />
+      )}
     </div>
   );
 }

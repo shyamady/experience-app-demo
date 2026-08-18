@@ -1,5 +1,5 @@
-import { FrequencyOnboardingScreen } from "@/components/onboarding/FrequencyOnboardingScreen";
+import { redirect } from "next/navigation";
 
 export default function FrequencyPage() {
-  return <FrequencyOnboardingScreen />;
+  redirect("/onboarding/needs");
 }

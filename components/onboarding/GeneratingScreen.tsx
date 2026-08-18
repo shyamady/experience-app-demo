@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AiGeneratingOrb } from "@/components/onboarding/AiGeneratingOrb";
 import { GeneratingProgressBar } from "@/components/onboarding/GeneratingProgressBar";
@@ -28,9 +28,10 @@ import {
   getReadyToCompleteAtMs,
 } from "@/lib/onboarding/generating-progress";
 import {
-  getFrequencyLabel,
+  getNeedLabelList,
   getOnboardingData,
   getParticipationLabelList,
+  getProjectCategoryLabel,
   summarizeActivity,
 } from "@/lib/onboarding/storage";
 
@@ -43,7 +44,8 @@ export function GeneratingScreen() {
 
     return {
       activity: summarizeActivity(data.activity),
-      frequency: data.frequencyLabel || getFrequencyLabel(data.frequencyId ?? "one-time"),
+      category: getProjectCategoryLabel(data.projectCategory),
+      needs: getNeedLabelList(data.needIds).join(" · "),
       participation: getParticipationLabelList(data.participationIds).join(" · "),
     };
   });
@@ -61,6 +63,7 @@ export function GeneratingScreen() {
   useEffect(() => {
     let cancelled = false;
     let frameId = 0;
+    const controller = new AbortController();
     const data = getOnboardingData();
     const startedAt = performance.now();
     const progressRef = { current: 0 };
@@ -94,13 +97,20 @@ export function GeneratingScreen() {
       let apiCompletedAt = startedAt;
 
       try {
-        const launch = await requestLaunchGeneration({
-          activity: data.activity,
-          frequency:
-            data.frequencyLabel ||
-            getFrequencyLabel(data.frequencyId ?? "one-time"),
-          participation: getParticipationLabelList(data.participationIds),
-        });
+        const launch = await requestLaunchGeneration(
+          {
+            activity: data.activity,
+            category: getProjectCategoryLabel(data.projectCategory) || undefined,
+            needs: getNeedLabelList(data.needIds).length
+              ? getNeedLabelList(data.needIds)
+              : ["Funding", "Participants"],
+            knownDetails: data.knownDetails || undefined,
+            participation: getParticipationLabelList(data.participationIds).length
+              ? getParticipationLabelList(data.participationIds)
+              : ["Shape It", "Join", "Follow the Journey"],
+          },
+          controller.signal,
+        );
 
         apiCompletedAt = performance.now();
         result = { status: "success", data: launch };
@@ -156,6 +166,7 @@ export function GeneratingScreen() {
 
     return () => {
       cancelled = true;
+      controller.abort();
       window.cancelAnimationFrame(frameId);
     };
   }, [router]);
@@ -173,11 +184,11 @@ export function GeneratingScreen() {
 
             <div className="space-y-2">
               <h1 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-[1.75rem]">
-                Building your experience
+                Building your project
               </h1>
               <p className="text-sm leading-relaxed text-zinc-500 sm:text-[0.9375rem]">
-                Turning what you&apos;re already doing into ways your fans can
-                participate.
+                Turning your idea into a realistic plan and meaningful ways your
+                community can help bring it to life.
               </p>
             </div>
           </div>
@@ -190,7 +201,8 @@ export function GeneratingScreen() {
 
           <InputSummaryCard
             activity={summary.activity}
-            frequency={summary.frequency}
+            category={summary.category}
+            needs={summary.needs}
             participation={summary.participation}
           />
 

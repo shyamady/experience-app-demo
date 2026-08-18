@@ -5,7 +5,7 @@ import { GripIcon } from "@/components/icons/GripIcon";
 import { SparkleIcon } from "@/components/icons/SparkleIcon";
 import { ToggleSwitch } from "@/components/experiences/ToggleSwitch";
 import {
-  EXPERIENCE_CATEGORIES,
+  PARTICIPATION_STYLE_CATEGORIES,
   type ExperienceProduct,
 } from "@/lib/onboarding/experiences";
 import {
@@ -49,8 +49,11 @@ export function ExperienceCard({
   const badge = getPassBadgeLabel(product.category);
   const badgeStyles = getPassBadgeStyles(getPassBadgeTone(product.category));
   const includes = getPassIncludesCopy(product.category);
-  const availability = getAvailabilityLabel(product.spots);
+  const availability = getAvailabilityLabel(product.spots, product.category);
   const passId = formatPassId(product.id);
+  const howItHelps = product.howItHelps || includes;
+  const access = product.access;
+  const phase = product.phase;
 
   function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -133,7 +136,7 @@ export function ExperienceCard({
 
             <div>
               <label className="mb-1 block text-xs font-medium text-zinc-500">
-                Category
+                Participation type
               </label>
               <select
                 value={product.category}
@@ -145,7 +148,14 @@ export function ExperienceCard({
                 }
                 className={fieldClassName}
               >
-                {EXPERIENCE_CATEGORIES.map((category) => (
+                {[
+                  ...PARTICIPATION_STYLE_CATEGORIES,
+                  ...(PARTICIPATION_STYLE_CATEGORIES.includes(
+                    product.category as (typeof PARTICIPATION_STYLE_CATEGORIES)[number],
+                  )
+                    ? []
+                    : [product.category]),
+                ].map((category) => (
                   <option key={category} value={category}>
                     {category}
                   </option>
@@ -167,7 +177,7 @@ export function ExperienceCard({
 
             <div>
               <label className="mb-1 block text-xs font-medium text-zinc-500">
-                Description
+                What the person does
               </label>
               <textarea
                 value={product.description}
@@ -179,10 +189,48 @@ export function ExperienceCard({
               />
             </div>
 
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">
+                How their participation helps
+              </label>
+              <textarea
+                value={product.howItHelps ?? ""}
+                onChange={(event) =>
+                  onUpdate({ howItHelps: event.target.value })
+                }
+                rows={2}
+                className={`${fieldClassName} resize-none`}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">
+                Access or involvement
+              </label>
+              <textarea
+                value={product.access ?? ""}
+                onChange={(event) => onUpdate({ access: event.target.value })}
+                rows={2}
+                className={`${fieldClassName} resize-none`}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-500">
+                Project phase
+              </label>
+              <input
+                type="text"
+                value={product.phase ?? ""}
+                onChange={(event) => onUpdate({ phase: event.target.value })}
+                className={fieldClassName}
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1 block text-xs font-medium text-zinc-500">
-                  Price
+                  Suggested contribution
                 </label>
                 <div className="relative">
                   <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">
@@ -201,7 +249,7 @@ export function ExperienceCard({
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-zinc-500">
-                  Spots
+                  Capacity
                 </label>
                 <select
                   value={
@@ -262,12 +310,30 @@ export function ExperienceCard({
                     {product.description}
                   </p>
 
+                  {phase && (
+                    <p className="mt-2 text-[0.6875rem] font-semibold tracking-[0.08em] text-pink-500 uppercase">
+                      {phase}
+                    </p>
+                  )}
+
                   <div className="mt-2.5 flex items-start gap-2 rounded-xl bg-rose-50/90 px-2.5 py-2 sm:mt-3 sm:gap-2.5 sm:rounded-2xl sm:px-3.5 sm:py-2.5">
                     <ShieldStarIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pink-500 sm:h-4 sm:w-4" />
-                    <p className="line-clamp-2 text-[0.6875rem] leading-relaxed text-zinc-600 sm:text-xs sm:text-[0.8125rem]">
-                      <span className="font-semibold text-zinc-800">Includes:</span>{" "}
-                      {includes}
-                    </p>
+                    <div className="min-w-0">
+                      <p className="line-clamp-2 text-[0.6875rem] leading-relaxed text-zinc-600 sm:text-xs sm:text-[0.8125rem]">
+                        <span className="font-semibold text-zinc-800">
+                          Helps the project:
+                        </span>{" "}
+                        {howItHelps}
+                      </p>
+                      {access && (
+                        <p className="mt-1 line-clamp-2 text-[0.6875rem] leading-relaxed text-zinc-600 sm:text-xs sm:text-[0.8125rem]">
+                          <span className="font-semibold text-zinc-800">
+                            They receive:
+                          </span>{" "}
+                          {access}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -283,7 +349,7 @@ export function ExperienceCard({
                 <div className="space-y-4">
                   <div>
                     <p className="text-[0.625rem] font-semibold tracking-[0.14em] text-zinc-400">
-                      INVESTMENT
+                      CONTRIBUTION
                     </p>
                     <p className="mt-1 text-2xl font-bold tracking-tight text-zinc-900">
                       ${product.price.toLocaleString()}
@@ -292,7 +358,7 @@ export function ExperienceCard({
 
                   <div className="border-t border-dashed border-pink-100 pt-3">
                     <p className="text-[0.625rem] font-semibold tracking-[0.14em] text-zinc-400">
-                      AVAILABILITY
+                      CAPACITY
                     </p>
                     <p className="mt-1 text-lg font-bold text-pink-600">
                       {availability.value}
@@ -312,7 +378,7 @@ export function ExperienceCard({
                     className="inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-white meuse-gradient-bg shadow-lg shadow-pink-200/50 transition-transform hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <LockIcon className="h-3.5 w-3.5" />
-                    Edit Pass
+                    Edit
                   </button>
 
                   <div>

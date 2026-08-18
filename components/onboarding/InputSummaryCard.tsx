@@ -1,20 +1,17 @@
 type InputSummaryCardProps = {
   activity: string;
-  dates?: string;
-  location?: string;
-  frequency: string;
+  category?: string;
+  needs?: string;
   participation: string;
 };
 
 export function InputSummaryCard({
   activity,
-  dates,
-  location,
-  frequency,
+  category,
+  needs,
   participation,
 }: InputSummaryCardProps) {
-  const hasContent =
-    activity || dates || location || frequency || participation;
+  const hasContent = activity || category || needs || participation;
 
   if (!hasContent) return null;
 
@@ -23,14 +20,11 @@ export function InputSummaryCard({
       {activity && (
         <p className="text-sm font-semibold text-zinc-800">{activity}</p>
       )}
-      {dates && (
-        <p className="mt-0.5 text-xs text-zinc-500 sm:text-sm">{dates}</p>
+      {category && (
+        <p className="mt-0.5 text-xs text-zinc-500 sm:text-sm">{category}</p>
       )}
-      {location && (
-        <p className="mt-0.5 text-xs text-zinc-500 sm:text-sm">{location}</p>
-      )}
-      {frequency && (
-        <p className="mt-0.5 text-xs text-zinc-500 sm:text-sm">{frequency}</p>
+      {needs && (
+        <p className="mt-0.5 text-xs text-zinc-500 sm:text-sm">{needs}</p>
       )}
       {participation && (
         <p className="mt-1 text-xs text-pink-500 sm:text-sm">{participation}</p>

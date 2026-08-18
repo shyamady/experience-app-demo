@@ -64,6 +64,7 @@ export function EditProductScreen({ productId }: EditProductScreenProps) {
 
   return (
     <DashboardShell
+      variant="workspace"
       title="Edit Product"
       subtitle="Update your product and preview how fans will see it."
     >

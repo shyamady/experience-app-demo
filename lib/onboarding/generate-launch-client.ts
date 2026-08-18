@@ -1,33 +1,60 @@
+import { buildFallbackLaunch } from "@/lib/launch/fallback";
+import { normalizeLaunchResponse } from "@/lib/launch/validate";
 import type { GenerateLaunchRequest, LaunchResponse } from "@/types/launch";
-import { isLaunchResponse } from "@/lib/launch/validate";
 
 type GenerateLaunchErrorResponse = {
   error: string;
 };
 
+const GENERATE_LAUNCH_TIMEOUT_MS = 45_000;
+
 export async function requestLaunchGeneration(
   body: GenerateLaunchRequest,
+  signal?: AbortSignal,
 ): Promise<LaunchResponse> {
-  const response = await fetch("/api/generate-launch", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  try {
+    const timeoutSignal = AbortSignal.timeout(GENERATE_LAUNCH_TIMEOUT_MS);
+    const response = await fetch("/api/generate-launch", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: signal
+        ? AbortSignal.any([signal, timeoutSignal])
+        : timeoutSignal,
+    });
 
-  const data: LaunchResponse | GenerateLaunchErrorResponse =
-    await response.json();
+    const data: unknown = await response.json();
 
-  if (!response.ok || "error" in data) {
-    throw new Error(
-      "error" in data ? data.error : "Failed to generate launch.",
-    );
+    if (!response.ok || (isRecord(data) && "error" in data)) {
+      throw new Error(
+        isGenerateLaunchError(data) ? data.error : "Failed to generate launch.",
+      );
+    }
+
+    const launch = normalizeLaunchResponse(data);
+    if (!launch) {
+      throw new Error("Failed to generate launch.");
+    }
+
+    return launch;
+  } catch (error) {
+    if (signal?.aborted) {
+      throw error;
+    }
+
+    console.error("generate-launch: using local fallback", error);
+    return buildFallbackLaunch(body);
   }
+}
 
-  if (!isLaunchResponse(data)) {
-    throw new Error("Failed to generate launch.");
-  }
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
 
-  return data;
+function isGenerateLaunchError(
+  value: unknown,
+): value is GenerateLaunchErrorResponse {
+  return isRecord(value) && typeof value.error === "string";
 }

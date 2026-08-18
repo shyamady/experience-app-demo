@@ -7,7 +7,7 @@ export function GenerationErrorCard({ onRetry }: GenerationErrorCardProps) {
     <div className="rounded-meuse border border-pink-100 bg-white px-5 py-6 text-center shadow-meuse-card sm:px-6">
       <h2 className="text-lg font-semibold text-zinc-900">Something went wrong</h2>
       <p className="mt-2 text-sm text-zinc-500">
-        We couldn&apos;t generate your experiences right now. Please try again.
+        We couldn&apos;t generate your project plan right now. Please try again.
       </p>
       <button
         type="button"

@@ -19,12 +19,14 @@ async function enrichProductWithImage(
 export async function enrichLaunchWithImages(
   launch: LaunchResponse,
 ): Promise<LaunchResponse> {
-  const products = await Promise.all(
-    launch.products.map((product) => enrichProductWithImage(product)),
-  );
+  const [heroImageUrl, ...products] = await Promise.all([
+    searchUnsplashPhoto(launch.heroImageQuery),
+    ...launch.products.map((product) => enrichProductWithImage(product)),
+  ]);
 
   return {
     ...launch,
+    heroImageUrl: heroImageUrl ?? products[0]?.imageUrl ?? getPlaceholderImageUrl(),
     products,
   };
 }

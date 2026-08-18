@@ -4,16 +4,20 @@ import {
   LAUNCH_GENERATION_SYSTEM_PROMPT,
   LAUNCH_RESPONSE_JSON_SCHEMA,
 } from "@/lib/launch/schema";
-import { isLaunchResponse } from "@/lib/launch/validate";
+import { normalizeLaunchResponse } from "@/lib/launch/validate";
 import type { GenerateLaunchRequest, LaunchResponse } from "@/types/launch";
+
+const OPENAI_TIMEOUT_MS = 20_000;
 
 function buildUserPrompt(body: GenerateLaunchRequest): string {
   return [
-    "Create monetizable launch products for this creator activity.",
+    "Turn this creator ambition into a one-time, community-participated project plan.",
     "",
-    `Activity: ${body.activity}`,
-    `Frequency: ${body.frequency}`,
-    `Participation: ${body.participation.join(", ")}`,
+    `Project idea: ${body.activity}`,
+    `Project category: ${body.category || "Not specified"}`,
+    `Project needs: ${body.needs.join(", ") || "Not specified"}`,
+    `Known details: ${body.knownDetails?.trim() || "None shared"}`,
+    `Ways to participate: ${body.participation.join(", ")}`,
   ].join("\n");
 }
 
@@ -26,7 +30,11 @@ export async function generateLaunchWithOpenAI(
     throw new Error("OPENAI_API_KEY is not configured.");
   }
 
-  const client = new OpenAI({ apiKey });
+  const client = new OpenAI({
+    apiKey,
+    timeout: OPENAI_TIMEOUT_MS,
+    maxRetries: 0,
+  });
 
   const response = await client.responses.create({
     model: "gpt-5",
@@ -51,10 +59,11 @@ export async function generateLaunchWithOpenAI(
   });
 
   const parsed: unknown = JSON.parse(response.output_text);
+  const launch = normalizeLaunchResponse(parsed);
 
-  if (!isLaunchResponse(parsed)) {
+  if (!launch) {
     throw new Error("OpenAI returned an invalid launch response.");
   }
 
-  return enrichLaunchWithImages(parsed);
+  return enrichLaunchWithImages(launch);
 }

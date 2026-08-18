@@ -15,8 +15,7 @@ export function HomeLandingPage() {
             meuse
           </p>
           <p className="text-sm text-zinc-400">
-            Turn what you&apos;re already doing into unforgettable fan
-            experiences.
+            Launch a meaningful one-time project with your community.
           </p>
         </div>
       </footer>

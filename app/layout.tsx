@@ -14,7 +14,7 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   title: "meuse",
-  description: "Turn what you're doing into a fan experience",
+  description: "Launch a meaningful one-time project with your community",
 };
 
 export default function RootLayout({

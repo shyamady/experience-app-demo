@@ -6,7 +6,7 @@ import { ActivityOptionCard } from "@/components/landing/ActivityOptionCard";
 import { ExamplePrompt } from "@/components/landing/ExamplePrompt";
 import { OnboardingProgress } from "@/components/onboarding/OnboardingProgress";
 import { useOnboardingStart } from "@/lib/landing/use-onboarding-start";
-import { HINT_EXAMPLES, SUGGESTIONS } from "@/lib/onboarding/suggestions";
+import { SUGGESTIONS } from "@/lib/onboarding/suggestions";
 
 type OnboardingHeroProps = {
   id?: string;
@@ -24,6 +24,7 @@ export function OnboardingHero({
     setInputValue,
     selectedId,
     placeholder,
+    examples,
     textareaRef,
     handleSuggestionSelect,
     handleExampleSelect,
@@ -74,22 +75,22 @@ export function OnboardingHero({
       >
         <div className="mx-auto w-full text-center">
           <h1
-            className="meuse-fade-in-up text-[2.5rem] font-bold leading-[1.08] tracking-[-0.03em] text-zinc-900 sm:text-6xl sm:leading-[1.05]"
+            className="meuse-fade-in-up text-[2.15rem] font-bold leading-[1.08] tracking-[-0.03em] text-zinc-900 sm:text-[3.25rem] sm:leading-[1.05]"
             style={{ animationDelay: "0.04s" }}
           >
-            What&apos;s happening next?
+            What do you want to make happen next?
           </h1>
           <p
-            className="meuse-fade-in-up mx-auto mt-5 max-w-xl text-[1.05rem] leading-relaxed text-zinc-500 sm:text-xl"
+            className="meuse-fade-in-up mx-auto mt-3 max-w-lg text-sm leading-relaxed text-zinc-500 sm:mt-4 sm:text-base"
             style={{ animationDelay: "0.1s" }}
           >
-            Tell us what you&apos;re already doing so we can turn it into a fan
+            Start with something you&apos;ve been wanting to create, launch, or
             experience.
           </p>
         </div>
 
         <div
-          className="meuse-fade-in-up relative mx-auto mt-10 w-full sm:mt-12"
+          className="meuse-fade-in-up relative mx-auto mt-8 w-full sm:mt-10"
           style={{ animationDelay: "0.16s" }}
         >
           <div
@@ -98,7 +99,7 @@ export function OnboardingHero({
           />
           <div className="relative overflow-hidden rounded-[1.75rem] border border-white bg-white/90 p-1 shadow-[0_20px_60px_-12px_rgba(219,39,119,0.18),0_8px_24px_-8px_rgba(0,0,0,0.06)] backdrop-blur-xl">
             <div className="flex items-end gap-2 px-3 py-3 sm:gap-3 sm:px-4 sm:py-4">
-              <SparkleIcon className="mb-4 ml-0.5 h-5 w-5 shrink-0 text-pink-300 sm:h-6 sm:w-6" />
+              <SparkleIcon className="mb-4 ml-0.5 h-5 w-5 shrink-0 text-pink-400 sm:h-6 sm:w-6" />
               <textarea
                 ref={textareaRef}
                 value={inputValue}
@@ -123,13 +124,20 @@ export function OnboardingHero({
               </button>
             </div>
           </div>
+          <p className="mt-3 text-center text-xs text-zinc-400 sm:text-[0.8125rem]">
+            You don&apos;t need a plan yet. Just tell us what you want to make
+            happen.
+          </p>
         </div>
 
         <div
           className="meuse-fade-in-up mx-auto mt-7 w-full sm:mt-8"
           style={{ animationDelay: "0.22s" }}
         >
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+          <p className="mb-3 text-center text-xs font-medium tracking-wide text-zinc-400">
+            Or start with an idea
+          </p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-2.5">
             {SUGGESTIONS.map((suggestion) => (
               <ActivityOptionCard
                 key={suggestion.id}
@@ -142,23 +150,25 @@ export function OnboardingHero({
           </div>
         </div>
 
-        <div
-          className="meuse-fade-in-up mx-auto mt-7 w-full sm:mt-8"
-          style={{ animationDelay: "0.28s" }}
-        >
-          <p className="mb-3 text-center text-xs font-medium tracking-wide text-zinc-400 uppercase sm:text-sm sm:normal-case sm:tracking-normal">
-            Try things like:
-          </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {HINT_EXAMPLES.map((example) => (
-              <ExamplePrompt
-                key={example}
-                text={example}
-                onSelect={handleExampleSelect}
-              />
-            ))}
+        {examples.length > 0 && (
+          <div
+            className="meuse-fade-in-up mx-auto mt-6 w-full sm:mt-7"
+            style={{ animationDelay: "0.28s" }}
+          >
+            <p className="mb-3 text-center text-xs font-medium text-zinc-400">
+              Need inspiration?
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {examples.map((example) => (
+                <ExamplePrompt
+                  key={example}
+                  text={example}
+                  onSelect={handleExampleSelect}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {showProgress && (
           <div className="mx-auto mt-10 w-full max-w-md">

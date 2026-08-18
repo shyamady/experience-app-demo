@@ -21,11 +21,9 @@ export function OrdersScreen() {
   const orders = useMemo(() => getDemoOrders(), []);
 
   return (
-    <DashboardShell
-      title="Orders"
-      subtitle="View payments and purchase history."
-    >
-      <div className="px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
+    <DashboardShell>
+      <div className="py-1">
+        <h2 className="mb-5 text-lg font-semibold text-zinc-900">Orders</h2>
         <DashboardDataTable>
           <DashboardTableHead>
             <DashboardTableHeaderCell>Order ID</DashboardTableHeaderCell>

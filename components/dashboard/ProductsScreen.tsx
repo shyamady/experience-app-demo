@@ -10,12 +10,10 @@ export function ProductsScreen() {
   const firstProductId = activeCampaign.products[0]?.id ?? "live-nashville-studio";
 
   return (
-    <DashboardShell
-      title="Products"
-      subtitle="Fan experiences and packages for your campaign."
-    >
-      <div className="px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
-        <div className="mb-4 flex justify-end">
+    <DashboardShell>
+      <div className="px-0 py-1 sm:py-2">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-zinc-900">Participation</h2>
           <Link
             href={`/dashboard/products/${firstProductId}/edit`}
             className="rounded-full bg-[#FF4F9A] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-pink-200/50 transition-transform hover:scale-[1.02]"

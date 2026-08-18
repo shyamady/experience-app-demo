@@ -29,6 +29,7 @@ export async function searchUnsplashPhoto(query: string): Promise<string | null>
         "Accept-Version": "v1",
       },
       next: { revalidate: 0 },
+      signal: AbortSignal.timeout(4_000),
     });
 
     if (!response.ok) {

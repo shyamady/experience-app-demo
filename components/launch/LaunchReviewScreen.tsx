@@ -40,6 +40,7 @@ export function LaunchReviewScreen() {
 
   return (
     <DashboardShell
+      variant="workspace"
       title="Preview Launch"
       subtitle="Review and finalize before publishing."
     >

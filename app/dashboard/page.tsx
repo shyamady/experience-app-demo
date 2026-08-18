@@ -1,5 +1,10 @@
-import { redirect } from "next/navigation";
+import { LaunchHomeScreen } from "@/components/dashboard/home/LaunchHomeScreen";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default function DashboardPage() {
-  redirect("/dashboard/products");
+  return (
+    <DashboardShell>
+      <LaunchHomeScreen />
+    </DashboardShell>
+  );
 }

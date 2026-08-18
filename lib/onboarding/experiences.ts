@@ -1,5 +1,8 @@
 import type { ProductCategory } from "@/lib/launch/categories";
-import { PRODUCT_CATEGORIES } from "@/lib/launch/categories";
+import {
+  PARTICIPATION_CATEGORIES,
+  PRODUCT_CATEGORIES,
+} from "@/lib/launch/categories";
 import type { OnboardingData } from "@/lib/onboarding/storage";
 
 export type ExperienceCategory = ProductCategory | "ONLINE";
@@ -11,15 +14,23 @@ export type ExperienceProduct = {
   category: ExperienceCategory;
   title: string;
   description: string;
+  howItHelps?: string;
+  access?: string;
+  phase?: string;
   price: number;
   spots: ExperienceSpots;
   imageUrl: string;
   active: boolean;
+  benefits?: string[];
 };
 
 export const EXPERIENCE_CATEGORIES: ExperienceCategory[] = [
   ...PRODUCT_CATEGORIES,
 ];
+
+export const PARTICIPATION_STYLE_CATEGORIES = [
+  ...PARTICIPATION_CATEGORIES,
+] as const;
 
 export const EXPERIENCE_TEMPLATES: {
   id: string;
@@ -27,75 +38,102 @@ export const EXPERIENCE_TEMPLATES: {
   category: ExperienceCategory;
   title: string;
   description: string;
+  howItHelps: string;
+  access: string;
+  phase: string;
   price: number;
   spots: ExperienceSpots;
   imageKey: keyof typeof EXPERIENCE_IMAGES;
 }[] = [
   {
-    id: "online-access",
-    label: "Online access",
-    category: "ONLINE",
-    title: "Online Access",
+    id: "shape-it",
+    label: "Shape It",
+    category: "SHAPE IT",
+    title: "Founding Participant",
     description:
-      "Behind-the-scenes updates, photos, videos, and replay access.",
-    price: 29,
-    spots: "unlimited",
-    imageKey: "travel",
-  },
-  {
-    id: "live-online",
-    label: "Live online pass",
-    category: "ONLINE",
-    title: "Live Online Pass",
-    description:
-      "Join a private live session, ask questions, and participate in real time.",
-    price: 79,
-    spots: 100,
-    imageKey: "video",
-  },
-  {
-    id: "gift-pass",
-    label: "Online + gift pass",
-    category: "ONLINE",
-    title: "Online + Gift Pass",
-    description:
-      "Includes online access plus a digital or physical gift, such as a signed postcard, exclusive photo pack, or limited keepsake.",
-    price: 49,
-    spots: "unlimited",
-    imageKey: "gift",
-  },
-  {
-    id: "in-person",
-    label: "In-person experience",
-    category: "IN PERSON",
-    title: "In-Person Experience",
-    description:
-      "Join the creator for a one-day or multi-day offline experience.",
-    price: 450,
-    spots: 8,
+      "Vote on key creative decisions and join one planning session before the project is produced.",
+    howItHelps:
+      "Early feedback helps the creator choose the right scale, tone, and first public version.",
+    access: "A private planning session and founding credit in project updates.",
+    phase: "Validate the idea",
+    price: 45,
+    spots: 40,
     imageKey: "group",
   },
   {
-    id: "community-sponsor",
-    label: "Community sponsor",
-    category: "SPONSOR",
-    title: "Community Sponsor",
+    id: "contribute",
+    label: "Contribute",
+    category: "CONTRIBUTE",
+    title: "Creative Contributor",
     description:
-      "Includes logo placement, campaign-page visibility, and brand mentions.",
-    price: 2500,
-    spots: 5,
-    imageKey: "sponsor",
+      "Submit an original idea, story, movement, or music sketch for the project.",
+    howItHelps:
+      "Community material gives the project a distinctive voice and more to build from.",
+    access: "Selected ideas are developed in a small working session.",
+    phase: "Validate the idea",
+    price: 75,
+    spots: 20,
+    imageKey: "video",
   },
   {
-    id: "presenting-sponsor",
-    label: "Presenting sponsor",
-    category: "SPONSOR",
-    title: "Presenting Sponsor",
+    id: "co-create",
+    label: "Co-create",
+    category: "CO-CREATE",
+    title: "Creative Collaborator",
     description:
-      "Includes “Presented by” placement, featured branding, product integration, and dedicated creator promotion.",
-    price: 7500,
+      "Join a small rehearsal or workshop where selected ideas are developed together.",
+    howItHelps:
+      "Hands-on collaboration turns the concept into something ready to produce.",
+    access: "Workshop participation and behind-the-scenes process updates.",
+    phase: "Produce and deliver",
+    price: 150,
+    spots: 10,
+    imageKey: "gift",
+  },
+  {
+    id: "join",
+    label: "Join",
+    category: "JOIN",
+    title: "Project Participant",
+    description:
+      "Attend, travel, perform, or become part of the final project.",
+    howItHelps:
+      "A committed group makes the live or in-person version possible.",
+    access: "A place in the final gathering, show, trip, or presentation.",
+    phase: "Produce and deliver",
+    price: 220,
+    spots: 40,
+    imageKey: "travel",
+  },
+  {
+    id: "follow",
+    label: "Follow the Journey",
+    category: "FOLLOW THE JOURNEY",
+    title: "Journey Member",
+    description:
+      "Receive private updates, behind-the-scenes access, and early previews as the project takes shape.",
+    howItHelps:
+      "A close audience keeps momentum going between milestones.",
+    access: "Private project updates and early peeks before public release.",
+    phase: "Validate the idea",
+    price: 29,
+    spots: "unlimited",
+    imageKey: "video",
+  },
+  {
+    id: "partner",
+    label: "Partner",
+    category: "PARTNER",
+    title: "Presenting Partner",
+    description:
+      "Provide funding, space, products, or production resources that help bring the project to life.",
+    howItHelps:
+      "Partnership closes the gap between the idea and a real production.",
+    access: "Recognition as a partner bringing the project to life.",
+    phase: "Reach the minimum goal",
+    price: 2500,
     spots: 2,
-    imageKey: "premium",
+    imageKey: "sponsor",
   },
 ];
 
@@ -115,37 +153,30 @@ export const EXPERIENCE_IMAGES = {
 
 const DEFAULT_PRODUCTS = EXPERIENCE_TEMPLATES;
 
-function createId(): string {
-  return `exp-${Math.random().toString(36).slice(2, 9)}`;
-}
-
 function extractCity(data: OnboardingData): string {
   const activity = data.activity.toLowerCase();
-  if (activity.includes("tokyo")) return "Tokyo";
-  if (activity.includes("nashville")) return "Nashville";
-  if (activity.includes("bali")) return "Bali";
-  if (activity.includes("los angeles")) return "Los Angeles";
+  const known = data.knownDetails.toLowerCase();
+  const haystack = `${activity} ${known}`;
+
+  if (haystack.includes("tokyo") || haystack.includes("japan")) return "Tokyo";
+  if (haystack.includes("paris")) return "Paris";
+  if (haystack.includes("nashville")) return "Nashville";
+  if (haystack.includes("bali")) return "Bali";
+  if (haystack.includes("los angeles")) return "Los Angeles";
   return "Your City";
-}
-
-function personalizeTitle(city: string, title: string): string {
-  if (title === "Online Access") return `${city} Online Access`;
-  if (title === "In-Person Experience") return `${city} In-Person Experience`;
-  return title;
-}
-
-function personalizeDescription(description: string, city: string): string {
-  return description.replace(/the creator/gi, `the creator in ${city}`);
 }
 
 export function generateExperiences(data: OnboardingData): ExperienceProduct[] {
   const city = extractCity(data);
 
   return DEFAULT_PRODUCTS.map((template) => ({
-    id: createId(),
+    id: `exp-${template.id}`,
     category: template.category,
-    title: personalizeTitle(city, template.title),
-    description: personalizeDescription(template.description, city),
+    title: template.title,
+    description: template.description.replace(/Your City/g, city),
+    howItHelps: template.howItHelps,
+    access: template.access,
+    phase: template.phase,
     price: template.price,
     spots: template.spots,
     imageUrl: EXPERIENCE_IMAGES[template.imageKey],
@@ -181,6 +212,17 @@ export function formatCurrency(value: number): string {
 
 export function getCategoryStyles(category: ExperienceCategory): string {
   switch (category) {
+    case "SHAPE IT":
+      return "bg-violet-50 text-violet-700";
+    case "CONTRIBUTE":
+      return "bg-sky-50 text-sky-700";
+    case "CO-CREATE":
+      return "bg-fuchsia-50 text-fuchsia-700";
+    case "JOIN":
+    case "IN PERSON":
+    case "MULTI-DAY":
+      return "bg-rose-50 text-pink-600";
+    case "FOLLOW THE JOURNEY":
     case "ONLINE ACCESS":
     case "LIVE ONLINE":
     case "INTERACTIVE":
@@ -188,14 +230,12 @@ export function getCategoryStyles(category: ExperienceCategory): string {
     case "ONLINE Q&A":
     case "ONLINE":
       return "bg-purple-50 text-purple-600";
-    case "IN PERSON":
-    case "MULTI-DAY":
-      return "bg-rose-50 text-pink-600";
-    case "SUPPORTER":
-      return "bg-sky-50 text-sky-700";
+    case "PARTNER":
     case "SPONSOR":
     case "PRESENTING SPONSOR":
       return "bg-amber-50 text-amber-700";
+    case "SUPPORTER":
+      return "bg-sky-50 text-sky-700";
     default:
       return "bg-zinc-100 text-zinc-600";
   }

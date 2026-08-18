@@ -20,7 +20,16 @@ function normalizeCategory(category: string): ExperienceCategory {
   const exact = PRODUCT_CATEGORIES.find((value) => value === normalized);
   if (exact) return exact;
 
-  if (normalized.includes("PRESENTING")) return "PRESENTING SPONSOR";
+  if (normalized.includes("FOLLOW")) return "FOLLOW THE JOURNEY";
+  if (normalized.includes("SHAPE")) return "SHAPE IT";
+  if (normalized.includes("CONTRIBUTE")) return "CONTRIBUTE";
+  if (normalized.includes("CO-CREATE") || normalized.includes("COCREATE")) {
+    return "CO-CREATE";
+  }
+  if (normalized.includes("PARTNER") || normalized.includes("PRESENTING")) {
+    return "PARTNER";
+  }
+  if (normalized.includes("JOIN")) return "JOIN";
   if (normalized.includes("SPONSOR")) return "SPONSOR";
   if (normalized.includes("MULTI")) return "MULTI-DAY";
   if (normalized.includes("PERSON")) return "IN PERSON";
@@ -32,7 +41,7 @@ function normalizeCategory(category: string): ExperienceCategory {
   if (normalized.includes("LIVE")) return "LIVE ONLINE";
   if (normalized.includes("INTERACT")) return "INTERACTIVE";
 
-  return "ONLINE ACCESS";
+  return "JOIN";
 }
 
 function isProductCategory(value: string): value is ProductCategory {
@@ -63,6 +72,9 @@ export function mapLaunchProducts(
       : normalizeCategory(product.category),
     title: product.title.trim(),
     description: product.description.trim(),
+    howItHelps: product.howItHelps.trim(),
+    access: product.access.trim(),
+    phase: product.phase.trim(),
     price: product.price,
     spots: parseCapacity(product.capacity),
     imageUrl: product.imageUrl ?? getPlaceholderImageUrl(),

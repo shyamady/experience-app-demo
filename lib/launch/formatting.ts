@@ -15,6 +15,25 @@ export function formatFirstDate(date: string): string {
   });
 }
 
+export function formatShortDate(date: string): string {
+  if (!date) return "";
+
+  const parsed = new Date(`${date}T00:00:00`);
+  return parsed.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export function getPrimaryPlace(data: LaunchData): string {
+  if (data.locationType === "online") {
+    return data.onlinePlatform || "Online";
+  }
+
+  return data.venue || data.city || getLocationDisplay(data);
+}
+
 export function getFrequencyDisplayLabel(
   frequencyId: FrequencyId | null,
   frequencyLabel: string,

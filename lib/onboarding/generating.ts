@@ -1,9 +1,9 @@
 export const GENERATING_STATUS_MESSAGES = [
-  "Understanding your activity",
-  "Matching fan participation options",
-  "Creating experience ideas",
-  "Setting prices and capacity",
-  "Preparing your launch",
+  "Understanding your project",
+  "Matching ways to participate",
+  "Building a realistic plan",
+  "Estimating what it takes",
+  "Creating your project plan",
 ] as const;
 
 export const GENERATING_FINAL_MESSAGE_INDEX =

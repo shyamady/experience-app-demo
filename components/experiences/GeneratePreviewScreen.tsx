@@ -1,18 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ExperienceCard } from "@/components/experiences/ExperienceCard";
 import { InvitationConfetti } from "@/components/experiences/InvitationConfetti";
 import { InvitationSparkles } from "@/components/experiences/InvitationSparkles";
-import { PreviewEarningsHighlight } from "@/components/experiences/PreviewEarningsHighlight";
+import { ProjectEstimatesCard } from "@/components/experiences/ProjectEstimatesCard";
 import { SparkleIcon } from "@/components/icons/SparkleIcon";
 import { GradientGlow } from "@/components/onboarding/GradientGlow";
-import {
-  estimateEarnings,
-  formatCurrency,
-  type ExperienceProduct,
-} from "@/lib/onboarding/experiences";
+import type { ExperienceProduct } from "@/lib/onboarding/experiences";
 import { getGeneratedLaunch } from "@/lib/onboarding/generated-launch";
 import { mapLaunchProducts } from "@/lib/onboarding/map-launch-products";
 import { getPreviewCreator } from "@/lib/onboarding/preview-creator";
@@ -20,24 +16,25 @@ import {
   createLaunchFromOnboarding,
   saveLaunchData,
 } from "@/lib/launch/storage";
+import { getPlaceholderImageUrl } from "@/lib/unsplash/search-photos";
 
-const DEFAULT_HERO_DESCRIPTION =
-  "We created personalized fan experiences based on your upcoming activity — designed to help you connect with fans and earn more.";
+const DEFAULT_STORY =
+  "We turned your ambition into a one-time project plan — with a realistic starting estimate and meaningful ways your community can help bring it to life.";
 
 const BENEFITS = [
   {
-    title: "More connection",
-    description: "Turn your activity into moments fans can join.",
+    title: "A project, not a product catalog",
+    description: "Launch one meaningful idea your community can help make real.",
     icon: "heart",
   },
   {
-    title: "More revenue",
-    description: "Monetize access, experiences, and sponsorship.",
+    title: "Participation, not tickets",
+    description: "People can shape, contribute, co-create, join, follow, or partner.",
     icon: "sparkle",
   },
   {
-    title: "We handle the tech",
-    description: "Payments, pages, and launch tools included.",
+    title: "Meuse handles the launch layer",
+    description: "Creation, participation, payments, goals, updates, and refunds.",
     icon: "shield",
   },
 ] as const;
@@ -45,25 +42,32 @@ const BENEFITS = [
 export function GeneratePreviewScreen() {
   const router = useRouter();
   const creator = useMemo(() => getPreviewCreator(), []);
-  const [heroTitle, setHeroTitle] = useState("Your launch");
-  const [heroDescription, setHeroDescription] = useState(DEFAULT_HERO_DESCRIPTION);
-  const [estimatedRevenue, setEstimatedRevenue] = useState<string | undefined>();
-  const [products, setProducts] = useState<ExperienceProduct[]>([]);
+  const generatedLaunch = useMemo(() => getGeneratedLaunch(), []);
+  const generated =
+    generatedLaunch?.status === "success" ? generatedLaunch.data : null;
+
+  const [heroTitle] = useState(generated?.heroTitle ?? "Your Project Plan");
+  const [heroDescription] = useState(generated?.heroDescription ?? DEFAULT_STORY);
+  const [heroImageUrl] = useState(
+    generated?.heroImageUrl ??
+      generated?.products[0]?.imageUrl ??
+      getPlaceholderImageUrl(),
+  );
+  const [estimates, setEstimates] = useState({
+    estimatedBudget: generated?.estimatedBudget ?? "$8,000–$12,000",
+    estimatedTimeToLaunch: generated?.estimatedTimeToLaunch ?? "60–90 days",
+    suggestedMinimumGoal: generated?.suggestedMinimumGoal ?? "$8,000",
+    recommendedCampaignLength:
+      generated?.recommendedCampaignLength ?? "30 days",
+    estimateAssumptions:
+      generated?.estimateAssumptions ??
+      "These are AI-generated starting estimates based on similar one-time projects. They are not guaranteed.",
+  });
+  const [products, setProducts] = useState<ExperienceProduct[]>(() =>
+    generated ? mapLaunchProducts(generated.products) : [],
+  );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const generatedLaunch = getGeneratedLaunch();
-    if (generatedLaunch?.status !== "success") return;
-
-    setHeroTitle(generatedLaunch.data.heroTitle);
-    setHeroDescription(generatedLaunch.data.heroDescription);
-    setEstimatedRevenue(generatedLaunch.data.estimatedRevenue);
-    setProducts(mapLaunchProducts(generatedLaunch.data.products));
-  }, []);
-
-  const { min, max } = useMemo(() => estimateEarnings(products), [products]);
-  const fallbackRevenue = `${formatCurrency(min)}–${formatCurrency(max)}`;
 
   const updateProduct = useCallback(
     (id: string, updates: Partial<ExperienceProduct>) => {
@@ -80,10 +84,16 @@ export function GeneratePreviewScreen() {
     const launch = createLaunchFromOnboarding(products, {
       title: heroTitle,
       description: heroDescription,
+      coverImageUrl: heroImageUrl,
+      estimatedBudget: estimates.estimatedBudget,
+      estimatedTimeToLaunch: estimates.estimatedTimeToLaunch,
+      suggestedMinimumGoal: estimates.suggestedMinimumGoal,
+      recommendedCampaignLength: estimates.recommendedCampaignLength,
+      estimateAssumptions: estimates.estimateAssumptions,
     });
     saveLaunchData(launch);
     router.push("/dashboard");
-  }, [heroDescription, heroTitle, products, router]);
+  }, [estimates, heroDescription, heroImageUrl, heroTitle, products, router]);
 
   const handleDrop = useCallback(
     (targetId: string) => {
@@ -123,7 +133,7 @@ export function GeneratePreviewScreen() {
               You&apos;re Invited!
             </p>
 
-            <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_18rem] lg:items-start lg:gap-8 lg:text-left">
+            <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_20rem] lg:items-start lg:gap-8 lg:text-left">
               <div className="flex flex-col items-center gap-4 lg:flex-row lg:items-start">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -143,9 +153,11 @@ export function GeneratePreviewScreen() {
               </div>
 
               <div className="lg:mt-2">
-                <PreviewEarningsHighlight
-                  estimatedRevenue={estimatedRevenue}
-                  fallbackRevenue={fallbackRevenue}
+                <ProjectEstimatesCard
+                  estimates={estimates}
+                  onChange={(updates) =>
+                    setEstimates((current) => ({ ...current, ...updates }))
+                  }
                 />
               </div>
             </div>
@@ -153,8 +165,11 @@ export function GeneratePreviewScreen() {
 
           <section className="mt-12 sm:mt-14">
             <h2 className="text-center text-lg font-bold text-zinc-900 sm:text-xl">
-              Your Personalized Experience
+              Your Project Plan
             </h2>
+            <p className="mx-auto mt-2 max-w-xl text-center text-sm text-zinc-500">
+              {heroTitle}
+            </p>
 
             <div className="mt-6 space-y-5">
               {products.map((product) => (
@@ -202,7 +217,7 @@ export function GeneratePreviewScreen() {
 
           <section className="mt-12 overflow-hidden rounded-meuse-lg meuse-gradient-bg px-6 py-10 text-center shadow-lg shadow-pink-200/40 sm:px-10 sm:py-12">
             <p className="text-lg font-semibold text-white sm:text-xl">
-              Ready to launch these experiences and start earning?
+              Ready to launch this project with your community?
             </p>
             <button
               type="button"
@@ -215,7 +230,7 @@ export function GeneratePreviewScreen() {
           </section>
 
           <p className="mt-8 text-center text-xs text-zinc-400 sm:text-sm">
-            Made for creators. Built for connection.
+            Made for creators. Built for community projects.
           </p>
         </main>
       </div>

@@ -10,12 +10,23 @@ import {
   type OnlinePlatform,
 } from "@/lib/onboarding/location";
 import {
+  PROJECT_NEED_OPTIONS,
+  type ProjectNeedId,
+} from "@/lib/onboarding/needs";
+import {
   PARTICIPATION_OPTIONS,
   type ParticipationId,
 } from "@/lib/onboarding/participation";
+import {
+  SUGGESTIONS,
+  type SuggestionId,
+} from "@/lib/onboarding/suggestions";
 
 export type OnboardingData = {
   activity: string;
+  projectCategory: SuggestionId | null;
+  needIds: ProjectNeedId[];
+  knownDetails: string;
   dateMode: DateMode;
   singleDate: string;
   startDate: string;
@@ -24,6 +35,7 @@ export type OnboardingData = {
   locationCity: string;
   onlinePlatform: OnlinePlatform | null;
   onlinePlatformOther: string;
+  /** Kept for older saved sessions; no longer collected in onboarding. */
   frequencyId: FrequencyId | null;
   frequencyLabel: string;
   customInterval: number;
@@ -35,6 +47,9 @@ const STORAGE_KEY = "meuse-onboarding";
 
 const DEFAULT_DATA: OnboardingData = {
   activity: "",
+  projectCategory: null,
+  needIds: [],
+  knownDetails: "",
   dateMode: "one-day",
   singleDate: "",
   startDate: "",
@@ -50,13 +65,49 @@ const DEFAULT_DATA: OnboardingData = {
   participationIds: [],
 };
 
+const LEGACY_PARTICIPATION_MAP: Record<string, ParticipationId> = {
+  watch: "follow",
+  influence: "shape",
+  interact: "contribute",
+  support: "partner",
+};
+
+function migrateParticipationIds(
+  ids: ParticipationId[] | undefined,
+): ParticipationId[] {
+  if (!ids?.length) return [];
+
+  const currentIds = new Set(PARTICIPATION_OPTIONS.map((option) => option.id));
+  const next: ParticipationId[] = [];
+
+  for (const id of ids) {
+    const mapped = (LEGACY_PARTICIPATION_MAP[id] ?? id) as ParticipationId;
+    if (currentIds.has(mapped) && !next.includes(mapped)) {
+      next.push(mapped);
+    }
+  }
+
+  return next;
+}
+
+function migrateStoredData(parsed: Partial<OnboardingData>): OnboardingData {
+  const merged = { ...DEFAULT_DATA, ...parsed };
+  merged.participationIds = migrateParticipationIds(parsed.participationIds);
+
+  if ((!merged.needIds || merged.needIds.length === 0) && parsed.frequencyId) {
+    merged.needIds = ["funding", "participants"];
+  }
+
+  return merged;
+}
+
 export function getOnboardingData(): OnboardingData {
   if (typeof window === "undefined") return DEFAULT_DATA;
 
   try {
     const stored = sessionStorage.getItem(STORAGE_KEY);
     if (!stored) return DEFAULT_DATA;
-    return { ...DEFAULT_DATA, ...JSON.parse(stored) };
+    return migrateStoredData(JSON.parse(stored) as Partial<OnboardingData>);
   } catch {
     return DEFAULT_DATA;
   }
@@ -73,29 +124,43 @@ export function saveOnboardingData(partial: Partial<OnboardingData>) {
 }
 
 export function summarizeActivity(activity: string): string {
-  if (!activity.trim()) return "Your activity";
+  if (!activity.trim()) return "Your project";
 
   const normalized = activity.toLowerCase();
 
-  if (normalized.includes("tokyo")) return "Tokyo trip";
-  if (normalized.includes("nashville")) return "Nashville recording";
-  if (normalized.includes("los angeles") || normalized.includes("la "))
-    return "LA performance";
-  if (normalized.includes("bali")) return "Bali retreat";
-  if (normalized.includes("marathon")) return "Marathon training";
-  if (normalized.includes("cohort")) return "Creator cohort";
-  if (normalized.includes("restaurant")) return "Restaurant tour";
+  if (normalized.includes("japan") || normalized.includes("tokyo")) {
+    return "Community trip to Japan";
+  }
+  if (normalized.includes("ep") || normalized.includes("album")) {
+    return "Record an EP";
+  }
+  if (normalized.includes("dance") || normalized.includes("stage show")) {
+    return "Live stage show";
+  }
+  if (normalized.includes("pop-up") || normalized.includes("popup")) {
+    return "Cultural pop-up";
+  }
+  if (normalized.includes("documentary")) return "Documentary";
+  if (normalized.includes("music video")) return "Music video";
 
   const trimmed = activity
+    .replace(/^I want to\s+/i, "")
     .replace(/^I'm\s+/i, "")
     .replace(/\.$/, "")
     .trim();
 
-  const words = trimmed.split(/\s+/).slice(0, 3);
-  if (words.length === 0) return "Your activity";
+  const words = trimmed.split(/\s+/).slice(0, 5);
+  if (words.length === 0) return "Your project";
 
   const summary = words.join(" ");
   return summary.charAt(0).toUpperCase() + summary.slice(1);
+}
+
+export function getProjectCategoryLabel(
+  id: SuggestionId | null,
+): string {
+  if (!id) return "";
+  return SUGGESTIONS.find((item) => item.id === id)?.label ?? "";
 }
 
 export function getFrequencyLabel(id: FrequencyId): string {
@@ -103,15 +168,28 @@ export function getFrequencyLabel(id: FrequencyId): string {
   return option?.label ?? "Custom";
 }
 
+export function getNeedLabels(ids: ProjectNeedId[]): string {
+  return getNeedLabelList(ids).join(" · ");
+}
+
+export function getNeedLabelList(ids: ProjectNeedId[]): string[] {
+  return ids.map(
+    (id) => PROJECT_NEED_OPTIONS.find((option) => option.id === id)?.title ?? id,
+  );
+}
+
 export function getParticipationLabels(ids: ParticipationId[]): string {
   return getParticipationLabelList(ids).join(" · ");
 }
 
 export function getParticipationLabelList(ids: ParticipationId[]): string[] {
-  return ids.map(
-    (id) =>
-      PARTICIPATION_OPTIONS.find((option) => option.id === id)?.title ?? id,
-  );
+  const currentIds = new Set(PARTICIPATION_OPTIONS.map((option) => option.id));
+  return ids
+    .filter((id) => currentIds.has(id))
+    .map(
+      (id) =>
+        PARTICIPATION_OPTIONS.find((option) => option.id === id)?.title ?? id,
+    );
 }
 
 function formatDisplayDate(date: string): string {

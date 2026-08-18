@@ -20,23 +20,17 @@ function createId(): string {
   return `exp-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function personalizeTitle(city: string, title: string): string {
-  if (title === "Online Access") return `${city} Online Access`;
-  if (title === "In-Person Experience") return `${city} In-Person Experience`;
-  return title;
-}
-
 export function AddExperiencePanel({
-  city,
   onAdd,
   onClose,
 }: AddExperiencePanelProps) {
   const defaultTemplate = EXPERIENCE_TEMPLATES[0];
   const [selectedTemplate, setSelectedTemplate] = useState(defaultTemplate.id);
-  const [title, setTitle] = useState(() =>
-    personalizeTitle(city, defaultTemplate.title),
-  );
+  const [title, setTitle] = useState(defaultTemplate.title);
   const [description, setDescription] = useState(defaultTemplate.description);
+  const [howItHelps, setHowItHelps] = useState(defaultTemplate.howItHelps);
+  const [access, setAccess] = useState(defaultTemplate.access);
+  const [phase, setPhase] = useState(defaultTemplate.phase);
   const [price, setPrice] = useState(defaultTemplate.price);
   const [spots, setSpots] = useState<string>(
     defaultTemplate.spots === "unlimited"
@@ -51,8 +45,11 @@ export function AddExperiencePanel({
 
     setSelectedTemplate(templateId);
     setCategory(template.category);
-    setTitle(personalizeTitle(city, template.title));
+    setTitle(template.title);
     setDescription(template.description);
+    setHowItHelps(template.howItHelps);
+    setAccess(template.access);
+    setPhase(template.phase);
     setPrice(template.price);
     setSpots(
       template.spots === "unlimited" ? "unlimited" : String(template.spots),
@@ -71,6 +68,9 @@ export function AddExperiencePanel({
       category,
       title: title.trim(),
       description: description.trim(),
+      howItHelps: howItHelps.trim(),
+      access: access.trim(),
+      phase: phase.trim(),
       price,
       spots: spots === "unlimited" ? "unlimited" : Number(spots),
       imageUrl: EXPERIENCE_IMAGES[template?.imageKey ?? "travel"],
@@ -81,7 +81,9 @@ export function AddExperiencePanel({
 
   return (
     <div className="rounded-meuse border-2 border-dashed border-pink-200 bg-meuse-hint p-4 sm:p-5">
-      <h3 className="text-sm font-semibold text-zinc-900">Add another experience</h3>
+      <h3 className="text-sm font-semibold text-zinc-900">
+        Add another participation style
+      </h3>
 
       <div className="mt-3 flex flex-wrap gap-2">
         {EXPERIENCE_TEMPLATES.map((template) => (
@@ -105,15 +107,36 @@ export function AddExperiencePanel({
           type="text"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          placeholder="Title"
+          placeholder="Participation title"
           className={fieldClassName}
         />
         <textarea
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          placeholder="Description"
+          placeholder="What the person does"
           rows={2}
           className={`${fieldClassName} resize-none`}
+        />
+        <textarea
+          value={howItHelps}
+          onChange={(event) => setHowItHelps(event.target.value)}
+          placeholder="How their participation helps"
+          rows={2}
+          className={`${fieldClassName} resize-none`}
+        />
+        <textarea
+          value={access}
+          onChange={(event) => setAccess(event.target.value)}
+          placeholder="Access or involvement they receive"
+          rows={2}
+          className={`${fieldClassName} resize-none`}
+        />
+        <input
+          type="text"
+          value={phase}
+          onChange={(event) => setPhase(event.target.value)}
+          placeholder="Project phase"
+          className={fieldClassName}
         />
         <div className="grid grid-cols-2 gap-3">
           <input
@@ -121,7 +144,7 @@ export function AddExperiencePanel({
             min={0}
             value={price}
             onChange={(event) => setPrice(Number(event.target.value) || 0)}
-            placeholder="Price"
+            placeholder="Suggested contribution"
             className={fieldClassName}
           />
           <select
@@ -130,8 +153,9 @@ export function AddExperiencePanel({
             className={fieldClassName}
           >
             <option value="unlimited">Unlimited</option>
+            <option value="2">2</option>
             <option value="10">10</option>
-            <option value="30">30</option>
+            <option value="40">40</option>
             <option value="50">50</option>
             <option value="100">100</option>
           </select>
@@ -144,7 +168,7 @@ export function AddExperiencePanel({
           onClick={handleAdd}
           className="rounded-full px-5 py-2 text-sm font-semibold text-white meuse-gradient-bg"
         >
-          Add experience
+          Add participation style
         </button>
         <button
           type="button"

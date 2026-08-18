@@ -30,11 +30,11 @@ export function ReferralHero({ creator }: ReferralHeroProps) {
         ✨ {firstName} invites you!
       </p>
       <h1 className="mx-auto mt-3 max-w-2xl font-meuse-display text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl lg:text-[2.75rem] lg:leading-tight">
-        Launch your next creator experience with Meuse
+        Launch your next community project with Meuse
       </h1>
       <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-zinc-600 sm:text-lg">
-        Turn what you&apos;re already doing into premium fan experiences in
-        minutes.
+        Turn something you genuinely want to make happen into a one-time
+        project your community can help bring to life.
       </p>
     </section>
   );

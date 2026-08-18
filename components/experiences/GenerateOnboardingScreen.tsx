@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { BackArrowIcon } from "@/components/icons/BackArrowIcon";
 import { AddExperiencePanel } from "@/components/experiences/AddExperiencePanel";
-import { EstimatedEarningsCard } from "@/components/experiences/EstimatedEarningsCard";
 import { ExperienceCard } from "@/components/experiences/ExperienceCard";
+import { ProjectEstimatesCard } from "@/components/experiences/ProjectEstimatesCard";
+import { ProjectMilestonesCard } from "@/components/experiences/ProjectMilestonesCard";
+import { ProjectOverviewCard } from "@/components/experiences/ProjectOverviewCard";
 import { AiOnboardingMessage } from "@/components/onboarding/AiOnboardingMessage";
 import { GenerationErrorCard } from "@/components/onboarding/GenerationErrorCard";
 import { GradientGlow } from "@/components/onboarding/GradientGlow";
@@ -27,35 +29,47 @@ import {
   createLaunchFromOnboarding,
   saveLaunchData,
 } from "@/lib/launch/storage";
+import { getPlaceholderImageUrl } from "@/lib/unsplash/search-photos";
+import type { ProjectMilestone } from "@/types/launch";
 
 export function GenerateOnboardingScreen() {
   const router = useRouter();
   const onboardingData = useMemo(() => getOnboardingData(), []);
   const city = extractCityFromData(onboardingData);
   const generatedLaunch = useMemo(() => getGeneratedLaunch(), []);
+  const generated =
+    generatedLaunch?.status === "success" ? generatedLaunch.data : null;
 
   const [products, setProducts] = useState<ExperienceProduct[]>(() => {
-    if (generatedLaunch?.status === "success") {
-      return mapLaunchProducts(generatedLaunch.data.products);
-    }
+    if (generated) return mapLaunchProducts(generated.products);
     return [];
   });
+  const [overview, setOverview] = useState(() => ({
+    title: generated?.heroTitle ?? "Your project",
+    heroImageUrl:
+      generated?.heroImageUrl ??
+      generated?.products[0]?.imageUrl ??
+      getPlaceholderImageUrl(),
+    story: generated?.heroDescription ?? "",
+    whyItMatters: generated?.whyItMatters ?? "",
+    communityMakesPossible: generated?.communityMakesPossible ?? "",
+  }));
+  const [estimates, setEstimates] = useState(() => ({
+    estimatedBudget: generated?.estimatedBudget ?? "$8,000–$12,000",
+    estimatedTimeToLaunch: generated?.estimatedTimeToLaunch ?? "60–90 days",
+    suggestedMinimumGoal: generated?.suggestedMinimumGoal ?? "$8,000",
+    recommendedCampaignLength:
+      generated?.recommendedCampaignLength ?? "30 days",
+    estimateAssumptions:
+      generated?.estimateAssumptions ??
+      "These are AI-generated starting estimates based on similar one-time projects. They are not guaranteed.",
+  }));
+  const [milestones, setMilestones] = useState<ProjectMilestone[]>(
+    () => generated?.milestones ?? [],
+  );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [showAddPanel, setShowAddPanel] = useState(false);
-
-  const heroTitle =
-    generatedLaunch?.status === "success"
-      ? generatedLaunch.data.heroTitle
-      : "AI built your experiences";
-  const heroDescription =
-    generatedLaunch?.status === "success"
-      ? generatedLaunch.data.heroDescription
-      : "We created a few ways fans and partners can take part. Edit anything you want.";
-  const estimatedRevenue =
-    generatedLaunch?.status === "success"
-      ? generatedLaunch.data.estimatedRevenue
-      : undefined;
 
   const handleRetry = useCallback(() => {
     router.push("/onboarding/generating");
@@ -74,12 +88,21 @@ export function GenerateOnboardingScreen() {
 
   const handleSignUpToLaunch = useCallback(() => {
     const launch = createLaunchFromOnboarding(products, {
-      title: heroTitle,
-      description: heroDescription,
+      title: overview.title,
+      description: overview.story,
+      coverImageUrl: overview.heroImageUrl,
+      whyItMatters: overview.whyItMatters,
+      communityMakesPossible: overview.communityMakesPossible,
+      estimatedBudget: estimates.estimatedBudget,
+      estimatedTimeToLaunch: estimates.estimatedTimeToLaunch,
+      suggestedMinimumGoal: estimates.suggestedMinimumGoal,
+      recommendedCampaignLength: estimates.recommendedCampaignLength,
+      estimateAssumptions: estimates.estimateAssumptions,
+      milestones,
     });
     saveLaunchData(launch);
     router.push("/dashboard");
-  }, [heroDescription, heroTitle, products, router]);
+  }, [estimates, milestones, overview, products, router]);
 
   const handleDrop = useCallback(
     (targetId: string) => {
@@ -135,11 +158,39 @@ export function GenerateOnboardingScreen() {
           <AiOnboardingMessage
             compact
             stepLabel="STEP 4 OF 4"
-            headline={heroTitle}
-            supportingText={heroDescription}
+            headline="Your Project Plan"
+            supportingText="A realistic starting plan and meaningful ways your community can help bring it to life. Everything here is editable."
           />
 
-          <div className="space-y-5">
+          <ProjectOverviewCard
+            overview={overview}
+            onChange={(updates) =>
+              setOverview((current) => ({ ...current, ...updates }))
+            }
+          />
+
+          <ProjectEstimatesCard
+            estimates={estimates}
+            onChange={(updates) =>
+              setEstimates((current) => ({ ...current, ...updates }))
+            }
+          />
+
+          <ProjectMilestonesCard
+            milestones={milestones}
+            onChange={setMilestones}
+          />
+
+          <div className="space-y-3">
+            <div>
+              <p className="text-[0.625rem] font-bold tracking-[0.16em] text-pink-400">
+                WAYS TO PARTICIPATE
+              </p>
+              <h2 className="mt-1 text-lg font-bold text-zinc-900">
+                Participation styles
+              </h2>
+            </div>
+
             {products.map((product) => (
               <ExperienceCard
                 key={product.id}
@@ -175,14 +226,9 @@ export function GenerateOnboardingScreen() {
               onClick={() => setShowAddPanel(true)}
               className="flex w-full items-center justify-center rounded-meuse border-2 border-dashed border-pink-200 py-5 text-sm font-medium text-pink-500 transition-colors hover:border-pink-300 hover:bg-rose-50"
             >
-              Add another experience
+              Add another participation style
             </button>
           )}
-
-          <EstimatedEarningsCard
-            products={products}
-            estimatedRevenue={estimatedRevenue}
-          />
 
           <div className="hidden items-center justify-between gap-3 pb-2 sm:flex">
             <Link

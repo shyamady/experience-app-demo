@@ -333,7 +333,7 @@ export function CalendarScreen() {
   }
 
   return (
-    <DashboardShell title="Calendar" subtitle="Sessions & inventory">
+    <DashboardShell variant="workspace">
       <div className="relative px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
         <CalendarHeader
           viewMode={viewMode}

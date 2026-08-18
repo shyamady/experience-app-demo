@@ -13,7 +13,7 @@ export function CustomerStoriesSection() {
             Customer Stories
           </p>
           <h2 className="mt-3 text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
-            Creators turning everyday plans into unforgettable experiences.
+            Creators launching meaningful projects with their communities.
           </h2>
         </div>
 

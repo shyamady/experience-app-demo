@@ -10,7 +10,11 @@ import {
   getDemoAttendees,
 } from "@/lib/dashboard/mock-data";
 
-export function AttendeesScreen() {
+type AttendeesScreenProps = {
+  heading?: string;
+};
+
+export function AttendeesScreen({ heading = "Attendees" }: AttendeesScreenProps) {
   const [search, setSearch] = useState("");
   const attendees = useMemo(() => getDemoAttendees(), []);
 
@@ -27,18 +31,24 @@ export function AttendeesScreen() {
   }, [attendees, search]);
 
   return (
-    <DashboardShell
-      title="Attendees"
-      subtitle="Manage recurring members and their access."
-    >
-      <div className="px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
+    <DashboardShell>
+      <div className="py-1">
         <div className="mb-5 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-zinc-500">
-            <span className="font-semibold text-zinc-900">
-              {filteredAttendees.length}
-            </span>{" "}
-            {filteredAttendees.length === 1 ? "attendee" : "attendees"}
-          </p>
+          <div>
+            <h2 className="text-lg font-semibold text-zinc-900">{heading}</h2>
+            <p className="mt-1 text-sm text-zinc-500">
+              <span className="font-semibold text-zinc-900">
+                {filteredAttendees.length}
+              </span>{" "}
+              {filteredAttendees.length === 1
+                ? heading === "Members"
+                  ? "member"
+                  : "attendee"
+                : heading === "Members"
+                  ? "members"
+                  : "attendees"}
+            </p>
+          </div>
           <DashboardSearchInput
             value={search}
             onChange={setSearch}

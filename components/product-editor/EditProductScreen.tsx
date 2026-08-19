@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { LaunchDashboardShell } from "@/components/dashboard/LaunchDashboardShell";
 import { DevicePreviewTabs } from "@/components/product-editor/DevicePreviewTabs";
 import { LiveProductPreview } from "@/components/product-editor/LiveProductPreview";
 import { ProductEditorForm } from "@/components/product-editor/ProductEditorForm";
@@ -63,11 +63,7 @@ export function EditProductScreen({ productId }: EditProductScreenProps) {
   );
 
   return (
-    <DashboardShell
-      variant="workspace"
-      title="Edit Product"
-      subtitle="Update your product and preview how fans will see it."
-    >
+    <LaunchDashboardShell>
       <div className="border-b border-pink-50 px-4 py-3 sm:px-6 lg:px-8">
         <Link
           href="/dashboard/products"
@@ -120,6 +116,6 @@ export function EditProductScreen({ productId }: EditProductScreenProps) {
         onSaveDraft={handleSaveDraft}
         onPublish={handlePublish}
       />
-    </DashboardShell>
+    </LaunchDashboardShell>
   );
 }

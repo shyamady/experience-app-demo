@@ -139,17 +139,69 @@ export const EXPERIENCE_TEMPLATES: {
 
 export const EXPERIENCE_IMAGES = {
   travel:
-    "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&h=500&fit=crop",
   video:
-    "https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=600&h=400&fit=crop",
-  gift: "https://images.unsplash.com/photo-1513201099705-a9746e1e201f?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=800&h=500&fit=crop",
+  gift: "https://images.unsplash.com/photo-1513201099705-a9746e1e201f?w=800&h=500&fit=crop",
   group:
-    "https://images.unsplash.com/photo-1528164344705-47542687000d?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1528164344705-47542687000d?w=800&h=500&fit=crop",
   sponsor:
-    "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=500&fit=crop",
   premium:
-    "https://images.unsplash.com/photo-1503899038394-086460604eba?w=600&h=400&fit=crop",
-};
+    "https://images.unsplash.com/photo-1503899038394-086460604eba?w=800&h=500&fit=crop",
+  stage:
+    "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&h=500&fit=crop",
+  crowd:
+    "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&h=500&fit=crop",
+  acoustic:
+    "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&h=500&fit=crop",
+  backstage:
+    "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&h=500&fit=crop",
+  venue:
+    "https://images.unsplash.com/photo-1566737236500-c8ac0ca260a6?w=800&h=500&fit=crop",
+  destination:
+    "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&h=500&fit=crop",
+  hotel:
+    "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=500&fit=crop",
+  dinner:
+    "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=500&fit=crop",
+  workout:
+    "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&h=500&fit=crop",
+  studio:
+    "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&h=500&fit=crop",
+  coaching:
+    "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&h=500&fit=crop",
+} as const;
+
+export type ExperienceImageKey = keyof typeof EXPERIENCE_IMAGES;
+
+export const PARTICIPATION_IMAGE_KEYS: ExperienceImageKey[] = [
+  "crowd",
+  "acoustic",
+  "stage",
+  "backstage",
+  "venue",
+  "group",
+  "dinner",
+];
+
+export const TRIP_IMAGE_KEYS: ExperienceImageKey[] = [
+  "destination",
+  "travel",
+  "hotel",
+  "group",
+  "dinner",
+  "premium",
+];
+
+export const FITNESS_IMAGE_KEYS: ExperienceImageKey[] = [
+  "workout",
+  "coaching",
+  "studio",
+  "group",
+  "gift",
+];
+
 
 const DEFAULT_PRODUCTS = EXPERIENCE_TEMPLATES;
 

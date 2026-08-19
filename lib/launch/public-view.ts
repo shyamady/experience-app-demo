@@ -1,3 +1,4 @@
+import { getCampaignDisplayStatus } from "@/lib/dashboard/campaign-status";
 import { getDemoAttendees, getDemoOrders } from "@/lib/dashboard/mock-data";
 import {
   getLaunchCommerce,
@@ -172,15 +173,11 @@ export function getLowestAvailablePrice(offers: PublicOffer[]): number | null {
 }
 
 export function getDaysLeftToJoin(data: LaunchData): number | null {
-  const date =
-    data.demandValidationEnabled && data.cutOffDate
-      ? data.cutOffDate
-      : data.firstDate;
-  if (!date) return null;
+  if (!data.cutOffDate) return null;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const target = new Date(`${date}T00:00:00`);
+  const target = new Date(`${data.cutOffDate}T00:00:00`);
   if (Number.isNaN(target.getTime())) return null;
 
   const days = Math.ceil((target.getTime() - today.getTime()) / 86_400_000);
@@ -188,7 +185,40 @@ export function getDaysLeftToJoin(data: LaunchData): number | null {
   return days;
 }
 
-export function getRecentJoinMessage(orders: Order[] = getDemoOrders()): string | null {
+export function formatDaysLeftCopy(daysLeft: number | null): string | null {
+  if (daysLeft === null) return null;
+  if (daysLeft === 0) return "Last day to join";
+  if (daysLeft === 1) return "🔥 1 day left";
+  if (daysLeft <= 3) return `🔥 ${daysLeft} days left`;
+  return `${daysLeft} days left to make this happen`;
+}
+
+export function getExpectedDateCopy(data: LaunchData): string {
+  if (!data.firstDate || data.dateCertainty === "after-goal") {
+    return "Expected after the goal is reached";
+  }
+  if (data.dateCertainty === "target") {
+    const parsed = new Date(`${data.firstDate}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return "Target date to be confirmed";
+    return `Target date: ${parsed.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    })}`;
+  }
+  const parsed = new Date(`${data.firstDate}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return "Expected after the goal is reached";
+  return parsed.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export function getRecentJoinMessage(
+  campaignId: string,
+  orders: Order[] = getDemoOrders(),
+): string | null {
+  if (campaignId !== "campaign-tokyo") return null;
   const now = Date.now();
   const last48h = orders.filter(
     (order) =>
@@ -211,8 +241,10 @@ export function getRecentJoinMessage(orders: Order[] = getDemoOrders()): string 
 }
 
 export function getParticipantAvatars(
+  campaignId: string,
   attendees: Attendee[] = getDemoAttendees(),
 ): { name: string; avatarUrl: string }[] {
+  if (campaignId !== "campaign-tokyo") return [];
   return attendees
     .filter((attendee) => attendee.status === "confirmed")
     .slice(0, 5)
@@ -316,5 +348,6 @@ export function getProjectOutline(data: LaunchData): {
 }
 
 export function isLiveLaunch(data: LaunchData): boolean {
-  return data.status === "published" && data.salesMode !== "preview";
+  const status = getCampaignDisplayStatus(data);
+  return status === "live" || status === "greenlit";
 }

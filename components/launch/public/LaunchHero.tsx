@@ -1,6 +1,14 @@
 import type { LaunchData } from "@/lib/launch/types";
-import { formatShortDate, getPrimaryPlace } from "@/lib/launch/formatting";
-import { isLiveLaunch } from "@/lib/launch/public-view";
+import { formatFirstDate, formatShortDate, getPrimaryPlace } from "@/lib/launch/formatting";
+import {
+  displayStatusLabel,
+  getCampaignDisplayStatus,
+} from "@/lib/dashboard/campaign-status";
+import { getCampaignProgress } from "@/lib/dashboard/campaign-progress";
+import {
+  formatDaysLeftCopy,
+  getExpectedDateCopy,
+} from "@/lib/launch/public-view";
 
 type LaunchHeroProps = {
   data: LaunchData;
@@ -9,62 +17,82 @@ type LaunchHeroProps = {
 
 export function LaunchHero({ data, compact = false }: LaunchHeroProps) {
   const place = getPrimaryPlace(data);
-  const date = formatShortDate(data.firstDate);
-  const live = isLiveLaunch(data);
+  const status = getCampaignDisplayStatus(data);
+  const progress = getCampaignProgress(data);
+  const daysCopy = formatDaysLeftCopy(progress.daysLeft);
+  const expected = getExpectedDateCopy(data);
+  const joinBy = data.cutOffDate ? formatFirstDate(data.cutOffDate) : "";
+  const statusLabel =
+    status === "greenlit"
+      ? "🎉 GREENLIT"
+      : status === "ended"
+        ? "ENDED"
+        : status === "cancelled"
+          ? "CANCELLED"
+          : displayStatusLabel(status);
 
   return (
     <div>
-      <div className={`relative w-full overflow-hidden ${compact ? "h-36" : "h-52 sm:h-64"}`}>
+      <div
+        className={`relative w-full overflow-hidden ${
+          compact ? "h-52" : "h-[22rem] sm:h-[32rem]"
+        }`}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={data.coverImageUrl}
           alt=""
           className="h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
-        <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[0.625rem] font-bold tracking-[0.14em] text-pink-600 shadow-sm">
-          <span className="h-1.5 w-1.5 rounded-full bg-pink-500" />
-          {live ? "LIVE PROJECT" : "PREVIEW"}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+        <span className="absolute top-4 left-4 inline-flex items-center rounded-full bg-white/95 px-3 py-1 text-[0.625rem] font-bold tracking-[0.16em] text-zinc-800 shadow-sm">
+          {statusLabel}
         </span>
+        <div className="absolute inset-x-0 bottom-0 px-5 pb-8 sm:px-8 sm:pb-10">
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+            {data.title || "Your launch title"}
+          </h1>
+          {data.subtitle && (
+            <p className="mt-1 text-base font-medium text-white/85 sm:text-xl">
+              {data.subtitle}
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className="relative z-10 flex justify-center">
+      <div className="relative z-10 flex items-end gap-3 px-5 sm:px-8">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={data.avatarUrl}
           alt=""
-          className={`relative rounded-full border-[4px] border-white object-cover shadow-[0_8px_24px_rgba(0,0,0,0.12)] ${
-            compact
-              ? "mt-[-2.25rem] h-[4.25rem] w-[4.25rem]"
-              : "mt-[-2.75rem] h-24 w-24 sm:h-[6.5rem] sm:w-[6.5rem]"
+          className={`rounded-full border-[4px] border-white object-cover shadow-[0_8px_24px_rgba(0,0,0,0.12)] ${
+            compact ? "mt-[-1.75rem] h-16 w-16" : "mt-[-2.25rem] h-[4.5rem] w-[4.5rem] sm:h-20 sm:w-20"
           }`}
         />
-      </div>
-
-      <div className={`text-center ${compact ? "mt-3" : "mt-4"}`}>
-        <h1 className="text-[1.65rem] font-bold tracking-tight text-zinc-900 sm:text-3xl">
-          {data.title || "Your launch title"}
-        </h1>
-        {data.subtitle && (
-          <p className="mt-1 text-base font-semibold text-zinc-700 sm:text-lg">
-            {data.subtitle}
-          </p>
-        )}
-        <p className="mt-2 text-sm font-medium text-pink-500">
+        <p className="mb-1 text-sm font-semibold text-pink-500">
           by {data.creatorName}
         </p>
+      </div>
+
+      <div className={`px-5 sm:px-8 ${compact ? "mt-3" : "mt-4"}`}>
         {data.description && (
-          <p className="mx-auto mt-3 max-w-[34rem] text-sm leading-relaxed text-zinc-600 sm:text-[0.9375rem]">
+          <p className="max-w-[36rem] text-lg font-medium leading-snug text-zinc-800 sm:text-xl">
             {data.description}
           </p>
         )}
 
-        {(place || date) && (
-          <p className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-zinc-500">
-            {place && <span>📍 {place}</span>}
-            {date && <span>📅 {date}</span>}
-          </p>
-        )}
+        <div className="mt-5 space-y-2 text-sm text-zinc-600">
+          {place && <p>📍 {place}</p>}
+          <p>📅 Expected: {expected}</p>
+          {joinBy && (
+            <p className="font-semibold text-pink-600">
+              ⏳ Join by: {formatShortDate(data.cutOffDate)}
+            </p>
+          )}
+          {daysCopy && status !== "ended" && status !== "cancelled" && (
+            <p className="text-sm font-medium text-zinc-500">{daysCopy}</p>
+          )}
+        </div>
       </div>
     </div>
   );

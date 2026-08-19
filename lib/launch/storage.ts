@@ -8,7 +8,7 @@ import {
   summarizeActivity,
 } from "@/lib/onboarding/storage";
 import type { LaunchData } from "@/lib/launch/types";
-import type { ProjectMilestone } from "@/types/launch";
+import type { BudgetLine, ProjectMilestone } from "@/types/launch";
 
 const LEGACY_LAUNCH_KEY = "meuse-launch";
 const CAMPAIGNS_STATE_KEY = "meuse-campaigns-state";
@@ -135,6 +135,15 @@ function migrateLaunchData(parsed: Record<string, unknown>): LaunchData {
     };
   }
 
+  if (migrated.id === "campaign-tokyo") {
+    if (!migrated.fundingGoal) migrated.fundingGoal = 12000;
+    if (!migrated.goalType) migrated.goalType = "funding";
+    if (!migrated.goalValue) migrated.goalValue = 12000;
+    if (!migrated.cutOffDate) migrated.cutOffDate = "2026-08-28";
+    if (!migrated.budgetLines?.length) migrated.budgetLines = QUIET_ROOM_BUDGET;
+    if (!migrated.dateCertainty) migrated.dateCertainty = "confirmed";
+  }
+
   return migrated;
 }
 
@@ -165,6 +174,9 @@ function createDemoProducts(): ExperienceProduct[] {
     projectCategory: null,
     needIds: [],
     knownDetails: "",
+    goalType: null,
+    goalValue: 0,
+    goalUnsure: false,
     dateMode: "one-day",
     singleDate: "",
     startDate: "",
@@ -195,7 +207,7 @@ function createQuietRoomProducts(): ExperienceProduct[] {
       phase: "Validate the idea",
       price: 50,
       spots: 12,
-      imageUrl: EXPERIENCE_IMAGES.group,
+      imageUrl: EXPERIENCE_IMAGES.acoustic,
       active: true,
       benefits: [
         "Vote on the setlist",
@@ -216,7 +228,7 @@ function createQuietRoomProducts(): ExperienceProduct[] {
       phase: "Validate the idea",
       price: 75,
       spots: 20,
-      imageUrl: EXPERIENCE_IMAGES.video,
+      imageUrl: EXPERIENCE_IMAGES.group,
       active: true,
       benefits: [
         "Submit a song or story",
@@ -236,7 +248,7 @@ function createQuietRoomProducts(): ExperienceProduct[] {
       phase: "Produce and deliver",
       price: 150,
       spots: 10,
-      imageUrl: EXPERIENCE_IMAGES.gift,
+      imageUrl: EXPERIENCE_IMAGES.backstage,
       active: true,
       benefits: [
         "Join a rehearsal",
@@ -255,7 +267,7 @@ function createQuietRoomProducts(): ExperienceProduct[] {
       phase: "Produce and deliver",
       price: 220,
       spots: 40,
-      imageUrl: EXPERIENCE_IMAGES.travel,
+      imageUrl: EXPERIENCE_IMAGES.crowd,
       active: true,
       benefits: [
         "Sit in the circle",
@@ -274,7 +286,7 @@ function createQuietRoomProducts(): ExperienceProduct[] {
       phase: "Validate the idea",
       price: 29,
       spots: "unlimited",
-      imageUrl: EXPERIENCE_IMAGES.video,
+      imageUrl: EXPERIENCE_IMAGES.stage,
       active: true,
       benefits: [
         "Follow the creation process",
@@ -285,20 +297,29 @@ function createQuietRoomProducts(): ExperienceProduct[] {
     {
       id: "exp-partner",
       category: "PARTNER",
-      title: "Quiet Partner",
+      title: "Sound Partner",
       description:
-        "Support the venue, equipment, recording, hospitality or another major part of the project.",
+        "Help cover sound production and be recognized as the audio partner for the night.",
       howItHelps:
         "Partnership closes the gap between the idea and a real night in the room.",
       access: "Recognition as a partner bringing the project to life.",
       phase: "Reach the minimum goal",
       price: 1500,
       spots: 2,
-      imageUrl: EXPERIENCE_IMAGES.sponsor,
+      imageUrl: EXPERIENCE_IMAGES.venue,
       active: true,
     },
   ];
 }
+
+const QUIET_ROOM_BUDGET: BudgetLine[] = [
+  { label: "Venue", amount: 3500, description: "Space rental and basic venue costs." },
+  { label: "Production", amount: 2500, description: "Sound, lighting, and technical support." },
+  { label: "Creative Team", amount: 2000, description: "Performers and production collaborators." },
+  { label: "Travel & Hospitality", amount: 1000, description: "Getting people there and looking after them." },
+  { label: "Marketing & Content", amount: 1000, description: "Assets, photo, video, and promotion." },
+  { label: "Other / buffer", amount: 2000, description: "Room for unexpected costs." },
+];
 
 function createTokyoCampaign(products?: ExperienceProduct[]): LaunchData {
   return withSlug({
@@ -308,14 +329,20 @@ function createTokyoCampaign(products?: ExperienceProduct[]): LaunchData {
     title: "The Quiet Room",
     subtitle: "One-Night Acoustic Circle",
     description:
-      "Help shape an intimate one-night acoustic experience — from the setlist to the room itself.",
+      "Help me bring this room together for one unforgettable night.",
     firstDate: "2026-08-30",
+    dateCertainty: "confirmed",
     locationType: "in-person",
     city: "Tokyo, Japan",
     venue: "Shibuya Creative Hub",
     frequencyId: "one-time",
     frequencyLabel: "One-time project",
     totalSpots: 100,
+    fundingGoal: 12000,
+    goalType: "funding",
+    goalValue: 12000,
+    cutOffDate: "2026-08-28",
+    budgetLines: QUIET_ROOM_BUDGET,
     status: "published",
     salesMode: "live",
     revenueRaised: 8420,
@@ -365,11 +392,22 @@ function createBaliCampaign(): LaunchData {
     demandValidationEnabled: true,
     cutOffDate: "2026-08-01",
     fundingGoal: 15000,
+    goalType: "funding",
+    goalValue: 15000,
     revenueRaised: 4200,
     registrationCount: 18,
     products: createDemoProducts(),
     slug: "bali-wellness-retreat",
     coverImageUrl: BALI_COVER,
+    dateCertainty: "confirmed",
+    budgetLines: [
+      { label: "Accommodation", amount: 5000, description: "Rooms for the group." },
+      { label: "Transportation", amount: 2500, description: "Getting everyone there." },
+      { label: "Activities", amount: 3000, description: "Shared practice and experiences." },
+      { label: "Local partner", amount: 1500, description: "Hosts who make the week work." },
+      { label: "Content", amount: 1500, description: "Photo and video from the retreat." },
+      { label: "Buffer", amount: 1500, description: "Room for unexpected costs." },
+    ],
     outlineHeading: "The week",
     outline: [
       {
@@ -662,7 +700,10 @@ export function createLaunchFromOnboarding(
     suggestedMinimumGoal?: string;
     recommendedCampaignLength?: string;
     estimateAssumptions?: string;
+    budgetLines?: BudgetLine[];
     milestones?: ProjectMilestone[];
+    goalType?: "people" | "funding";
+    goalValue?: number;
   },
 ): LaunchData {
   const onboarding = getOnboardingData();
@@ -681,15 +722,34 @@ export function createLaunchFromOnboarding(
       ? "Paris, France"
       : "";
 
-  const state = getCampaignsState();
-  const active = getActiveCampaign();
-  const isBlankCampaign =
-    !active.title && active.products.length === 0 && active.name === "New Campaign";
+  const goalType =
+    hero?.goalType ?? onboarding.goalType ?? "funding";
+  const goalValue =
+    hero?.goalValue ||
+    onboarding.goalValue ||
+    (goalType === "people" ? 50 : 10000);
+  const peopleCapacity = generatedProducts.reduce((sum, product) => {
+    return sum + (typeof product.spots === "number" ? product.spots : 0);
+  }, 0);
+  const fundingGoal =
+    goalType === "funding"
+      ? goalValue
+      : generatedProducts.reduce((sum, product) => {
+          const spots = typeof product.spots === "number" ? product.spots : 0;
+          return sum + product.price * spots;
+        }, 0);
 
-  const baseCampaign = isBlankCampaign ? active : createTokyoCampaign();
-  const launch = withSlug({
-    ...baseCampaign,
-    id: isBlankCampaign ? active.id : "campaign-tokyo",
+  const state = getCampaignsState();
+  const id = createCampaignId();
+  const baseSlug = slugify(launchTitle);
+  const usedSlugs = new Set(state.campaigns.map((campaign) => campaign.slug));
+  const slug = usedSlugs.has(baseSlug)
+    ? `${baseSlug}-${id.replace("campaign-", "")}`
+    : baseSlug;
+
+  const launch: LaunchData = {
+    ...DEFAULT_LAUNCH,
+    id,
     name: launchTitle || "Community Project",
     title: launchTitle,
     description: launchDescription,
@@ -698,36 +758,33 @@ export function createLaunchFromOnboarding(
     customInterval: onboarding.customInterval,
     customUnit: onboarding.customUnit,
     city,
-    coverImageUrl: hero?.coverImageUrl || baseCampaign.coverImageUrl,
+    firstDate: onboarding.singleDate || onboarding.startDate || "",
+    dateCertainty: onboarding.singleDate || onboarding.startDate ? "confirmed" : "after-goal",
+    coverImageUrl: hero?.coverImageUrl || DEFAULT_LAUNCH.coverImageUrl,
     products: generatedProducts,
-    subtitle: undefined,
-    creatorNote: hero?.whyItMatters,
-    outlineHeading: undefined,
-    outline: undefined,
-    whyItMatters: hero?.whyItMatters,
-    communityMakesPossible: hero?.communityMakesPossible,
-    estimatedBudget: hero?.estimatedBudget,
-    estimatedTimeToLaunch: hero?.estimatedTimeToLaunch,
+    status: "draft",
+    salesMode: "preview",
+    revenueRaised: 0,
+    registrationCount: 0,
+    fundingGoal,
+    totalSpots: peopleCapacity || goalValue,
+    slug,
     suggestedMinimumGoal: hero?.suggestedMinimumGoal,
-    recommendedCampaignLength: hero?.recommendedCampaignLength,
     estimateAssumptions: hero?.estimateAssumptions,
-    milestones: hero?.milestones,
-  });
-
-  const campaigns = isBlankCampaign
-    ? mergeCampaignIntoList(
-        state.campaigns.filter((campaign) => campaign.id !== active.id),
-        launch,
-      )
-    : mergeCampaignIntoList(
-        state.campaigns.filter((campaign) => campaign.id !== "campaign-tokyo"),
-        launch,
-      );
+    estimatedBudget: hero?.estimatedBudget,
+    budgetLines: hero?.budgetLines,
+    estimatedTimeToLaunch: hero?.estimatedTimeToLaunch,
+    recommendedCampaignLength: hero?.recommendedCampaignLength,
+    communityMakesPossible: hero?.communityMakesPossible,
+    whyItMatters: hero?.whyItMatters,
+    creatorNote: hero?.whyItMatters,
+    goalType,
+    goalValue,
+    milestones: undefined,
+  };
 
   writeCampaignsState({
-    campaigns: campaigns.some((campaign) => campaign.id === launch.id)
-      ? campaigns
-      : [...campaigns, launch],
+    campaigns: [...state.campaigns, launch],
     activeCampaignId: launch.id,
   });
 

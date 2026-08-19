@@ -1,10 +1,5 @@
-import { PlaceholderTabScreen } from "@/components/dashboard/event/PlaceholderTabScreen";
+import { UpdatesScreen } from "@/components/dashboard/UpdatesScreen";
 
 export default function UpdatesPage() {
-  return (
-    <PlaceholderTabScreen
-      title="Updates"
-      description="Publish announcements for guests of this experience."
-    />
-  );
+  return <UpdatesScreen />;
 }

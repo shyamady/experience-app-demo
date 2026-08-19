@@ -10,13 +10,18 @@ import type { GenerateLaunchRequest, LaunchResponse } from "@/types/launch";
 const OPENAI_TIMEOUT_MS = 20_000;
 
 function buildUserPrompt(body: GenerateLaunchRequest): string {
+  const goalLabel =
+    body.goalType === "people"
+      ? `${body.goalValue} people`
+      : `$${body.goalValue.toLocaleString()}`;
+
   return [
-    "Turn this creator ambition into a one-time, community-participated project plan.",
+    "Turn this creator ambition into a simple launch model: what must sell or fill for the project to happen.",
     "",
     `Project idea: ${body.activity}`,
     `Project category: ${body.category || "Not specified"}`,
-    `Project needs: ${body.needs.join(", ") || "Not specified"}`,
-    `Known details: ${body.knownDetails?.trim() || "None shared"}`,
+    `Primary goal type: ${body.goalType}`,
+    `Creator goal: ${goalLabel}${body.goalUnsure ? " (not sure — recommend a realistic goal)" : ""}`,
     `Ways to participate: ${body.participation.join(", ")}`,
   ].join("\n");
 }
@@ -59,7 +64,10 @@ export async function generateLaunchWithOpenAI(
   });
 
   const parsed: unknown = JSON.parse(response.output_text);
-  const launch = normalizeLaunchResponse(parsed);
+  const launch = normalizeLaunchResponse(parsed, {
+    type: body.goalType,
+    value: body.goalUnsure ? 0 : body.goalValue,
+  });
 
   if (!launch) {
     throw new Error("OpenAI returned an invalid launch response.");

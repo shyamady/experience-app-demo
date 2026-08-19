@@ -3,11 +3,11 @@ import type {
   FrequencyId,
 } from "@/lib/onboarding/frequency";
 import type { ExperienceProduct } from "@/lib/onboarding/experiences";
-import type { ProjectMilestone } from "@/types/launch";
+import type { BudgetLine, ProjectMilestone } from "@/types/launch";
 
 export type LaunchLocationType = "in-person" | "online" | "hybrid";
 
-export type LaunchStatus = "draft" | "published";
+export type LaunchStatus = "draft" | "published" | "ended" | "cancelled";
 
 export type LaunchSalesMode = "preview" | "waitlist" | "live";
 
@@ -58,5 +58,9 @@ export type LaunchData = {
   suggestedMinimumGoal?: string;
   recommendedCampaignLength?: string;
   estimateAssumptions?: string;
+  budgetLines?: BudgetLine[];
+  dateCertainty?: "confirmed" | "target" | "after-goal";
   milestones?: ProjectMilestone[];
+  goalType?: "people" | "funding";
+  goalValue?: number;
 };

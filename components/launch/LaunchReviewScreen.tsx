@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { LaunchDashboardShell } from "@/components/dashboard/LaunchDashboardShell";
 import {
   shouldShowValidationEndedCard,
   ValidationEndedCard,
@@ -39,11 +39,7 @@ export function LaunchReviewScreen() {
   const showValidationEnded = shouldShowValidationEndedCard(activeCampaign);
 
   return (
-    <DashboardShell
-      variant="workspace"
-      title="Preview Launch"
-      subtitle="Review and finalize before publishing."
-    >
+    <LaunchDashboardShell>
       <div className="px-4 py-5 pb-28 sm:px-6 sm:py-8 sm:pb-8 lg:px-8">
         {isPublished && (
           <div className="mb-6">
@@ -120,6 +116,6 @@ export function LaunchReviewScreen() {
           Publish Launch
         </button>
       </div>
-    </DashboardShell>
+    </LaunchDashboardShell>
   );
 }

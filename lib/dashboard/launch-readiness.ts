@@ -16,62 +16,64 @@ export function getLaunchReadiness(campaign: LaunchData): {
   percent: number;
   items: ReadinessItem[];
 } {
-  const hasBasics = Boolean(
-    campaign.firstDate &&
-      (campaign.city || campaign.onlinePlatform || campaign.venue),
+  const hasDetails = Boolean(
+    campaign.title.trim() && campaign.description.trim(),
   );
   const hasPhoto = Boolean(campaign.coverImageUrl);
-  const hasLink = Boolean(campaign.slug);
-  const hasTickets = campaign.products.length > 0;
-  const isPublished = campaign.status === "published";
-  const stripeConnected = false;
+  const hasGoal =
+    campaign.fundingGoal > 0 ||
+    Boolean(campaign.goalValue && campaign.goalValue > 0) ||
+    (campaign.totalSpots !== "unlimited" && campaign.totalSpots > 0);
+  const hasParticipation = campaign.products.some(
+    (product) => product.active && product.price >= 0,
+  );
+  const paymentSetup = false;
+  const hasReview = Boolean(campaign.slug);
 
   const items: ReadinessItem[] = [
     {
-      id: "basics",
-      title: "Basic Details",
-      hint: hasBasics ? undefined : "Add a date or location.",
-      status: hasBasics ? "complete" : "incomplete",
+      id: "details",
+      title: "Project details",
+      status: hasDetails ? "complete" : "incomplete",
       actionLabel: "Edit",
-      href: `/dashboard/products/${campaign.products[0]?.id ?? "live-nashville-studio"}/edit`,
-      featured: true,
-    },
-    {
-      id: "publish",
-      title: "Publish Event",
-      hint: isPublished ? "Your experience is live." : undefined,
-      status: isPublished ? "complete" : "incomplete",
-      actionLabel: "Review",
-      href: "/dashboard",
+      href: "/dashboard/settings",
       featured: true,
     },
     {
       id: "photo",
-      title: "Event Photo",
+      title: "Cover image",
       status: hasPhoto ? "complete" : "incomplete",
       actionLabel: "Edit",
       href: `/dashboard/products/${campaign.products[0]?.id ?? "live-nashville-studio"}/edit`,
+      featured: true,
     },
     {
-      id: "link",
-      title: "Experience Link",
-      status: hasLink ? "complete" : "incomplete",
-      actionLabel: "View",
-      href: `/launch/${campaign.slug}`,
+      id: "goal",
+      title: "Goal",
+      status: hasGoal ? "complete" : "incomplete",
+      actionLabel: "Edit",
+      href: "/dashboard/overview",
     },
     {
-      id: "stripe",
-      title: "Stripe Connect",
-      status: stripeConnected ? "complete" : "action",
-      actionLabel: "Finish setup",
-      href: "/dashboard",
-    },
-    {
-      id: "tickets",
-      title: "Ticket & Pricing",
-      status: hasTickets ? "complete" : "incomplete",
+      id: "participation",
+      title: "Participation",
+      status: hasParticipation ? "complete" : "incomplete",
       actionLabel: "Manage",
       href: "/dashboard/products",
+    },
+    {
+      id: "payment",
+      title: "Payment setup",
+      status: paymentSetup ? "complete" : "action",
+      actionLabel: "Finish setup",
+      href: "/dashboard/payment",
+    },
+    {
+      id: "review",
+      title: "Launch page review",
+      status: hasReview ? "incomplete" : "incomplete",
+      actionLabel: "Preview",
+      href: `/launch/${campaign.slug}`,
     },
   ];
 

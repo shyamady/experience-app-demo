@@ -1,14 +1,14 @@
 "use client";
 
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { LaunchDashboardShell } from "@/components/dashboard/LaunchDashboardShell";
 import { useCampaign } from "@/lib/dashboard/campaign-context";
 
 export default function SettingsPage() {
   const { activeCampaign } = useCampaign();
 
   return (
-    <DashboardShell>
-      <div className="rounded-[1.75rem] bg-white p-5 shadow-meuse-card">
+    <LaunchDashboardShell>
+      <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-sm">
         <h1 className="text-lg font-bold text-zinc-900">Settings</h1>
         <p className="mt-2 text-sm text-zinc-500">
           {activeCampaign.title || activeCampaign.name}
@@ -18,6 +18,6 @@ export default function SettingsPage() {
           launch grows.
         </p>
       </div>
-    </DashboardShell>
+    </LaunchDashboardShell>
   );
 }

@@ -102,7 +102,7 @@ export function useOnboardingStart() {
       activity: inputValue.trim(),
       projectCategory: selectedId,
     });
-    router.push("/onboarding/needs");
+    router.push("/onboarding/goal");
   }
 
   return {

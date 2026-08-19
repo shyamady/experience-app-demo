@@ -8,6 +8,10 @@ export type Attendee = {
   packageName: string;
   seasonsJoined: number;
   status: AttendeeStatus;
+  amountPaid: number;
+  joinedAt: string;
+  checkedIn: boolean;
+  notes: string;
 };
 
 export type PaymentStatus = "paid" | "refunded" | "pending";

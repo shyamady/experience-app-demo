@@ -29,7 +29,7 @@ export const PARTICIPATION_OPTIONS: ParticipationOption[] = [
     id: "contribute",
     title: "Contribute",
     description:
-      "Submit ideas, stories, music, designs, movement, or other material.",
+      "Submit ideas, stories, music, designs, content, or other material.",
     icon: "chat",
   },
   {
@@ -43,7 +43,7 @@ export const PARTICIPATION_OPTIONS: ParticipationOption[] = [
     id: "join",
     title: "Join",
     description:
-      "Attend, perform, travel, participate, or become part of the final project.",
+      "Attend, travel, perform, participate, or become part of the final experience.",
     icon: "users",
   },
   {

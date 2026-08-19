@@ -4,58 +4,26 @@ import Link from "next/link";
 import { SparkleIcon } from "@/components/icons/SparkleIcon";
 import { CampaignSwitcher } from "@/components/dashboard/CampaignSwitcher";
 import { useCampaign } from "@/lib/dashboard/campaign-context";
-import { getCreatorInitials } from "@/lib/dashboard/launch-readiness";
+import {
+  displayStatusLabel,
+  getCampaignDisplayStatus,
+} from "@/lib/dashboard/campaign-status";
 
 export function EventDashboardHeader() {
   const { activeCampaign } = useCampaign();
-  const title = activeCampaign.title || activeCampaign.name || "Untitled experience";
+  const title = activeCampaign.title || activeCampaign.name || "Untitled launch";
   const creator = activeCampaign.creatorName || "Creator";
-  const initials = getCreatorInitials(creator);
-  const firstProductId =
-    activeCampaign.products[0]?.id ?? "live-nashville-studio";
+  const firstProductId = activeCampaign.products[0]?.id ?? "live-nashville-studio";
+  const status = getCampaignDisplayStatus(activeCampaign);
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between gap-3">
-        <Link
-          href="/dashboard"
-          className="font-meuse-display text-xl font-extrabold tracking-tight meuse-gradient-text"
-        >
-          meuse
-        </Link>
-        <div className="flex items-center gap-3">
-          <CampaignSwitcher />
-          <button
-            type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-100"
-            aria-label="Notifications"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-            </svg>
-          </button>
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FF4F9A] text-xs font-bold text-white"
-            aria-hidden
-          >
-            {initials}
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <p className="truncate text-sm text-zinc-500">
-          {creator}
-          <span className="mx-1.5 text-zinc-300">›</span>
-          <span className="text-zinc-700">{title}</span>
-        </p>
+        <div className="flex min-w-0 items-center gap-1.5 text-sm text-zinc-500">
+          <span className="truncate">{creator}</span>
+          <span className="text-zinc-300">›</span>
+          <CampaignSwitcher />
+        </div>
         <div className="flex shrink-0 items-center gap-4">
           <Link
             href={`/dashboard/products/${firstProductId}/edit`}
@@ -68,7 +36,7 @@ export function EventDashboardHeader() {
             href={`/launch/${activeCampaign.slug}`}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-600 hover:text-zinc-900"
           >
-            Event page
+            View Launch Page
             <svg
               viewBox="0 0 24 24"
               className="h-3.5 w-3.5"
@@ -82,9 +50,22 @@ export function EventDashboardHeader() {
         </div>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-zinc-900 sm:text-[1.75rem]">
-        {title}
-      </h1>
+      <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 sm:text-[1.75rem]">
+          {title}
+        </h1>
+        <span
+          className={`rounded-full px-2.5 py-0.5 text-[0.65rem] font-bold tracking-[0.12em] ${
+            status === "live" || status === "greenlit"
+              ? "bg-emerald-50 text-emerald-700"
+              : status === "draft"
+                ? "bg-zinc-100 text-zinc-500"
+                : "bg-zinc-100 text-zinc-600"
+          }`}
+        >
+          {displayStatusLabel(status)}
+        </span>
+      </div>
     </div>
   );
 }

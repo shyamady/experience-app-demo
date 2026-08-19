@@ -1,21 +1,21 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CoCreatePanel } from "@/components/launch/public/CoCreatePanel";
+import { WhatItTakesCard } from "@/components/experiences/WhatItTakesCard";
 import { LaunchHero } from "@/components/launch/public/LaunchHero";
-import { LaunchTabs, type LaunchTabId } from "@/components/launch/public/LaunchTabs";
 import { LiveProgressSection } from "@/components/launch/public/LiveProgressSection";
 import { ParticipatePanel } from "@/components/launch/public/ParticipatePanel";
-import { ProjectStory } from "@/components/launch/public/ProjectStory";
+import { ProjectDetails, ProjectStory } from "@/components/launch/public/ProjectStory";
 import { SponsorshipSection } from "@/components/launch/public/SponsorshipSection";
-import { StickyJoinBar } from "@/components/launch/public/StickyJoinBar";
-import { UpdatesPanel } from "@/components/launch/public/UpdatesPanel";
 import {
-  getPublicCoCreate,
-  getPublicMomentum,
-  getPublicUpdates,
-} from "@/lib/dashboard/community";
+  DesktopSummaryCard,
+  StickyJoinBar,
+} from "@/components/launch/public/StickyJoinBar";
+import { UpdatesPanel } from "@/components/launch/public/UpdatesPanel";
+import { getCampaignGoalType, getCampaignGoalValue } from "@/lib/dashboard/campaign-progress";
+import { getCampaignDisplayStatus } from "@/lib/dashboard/campaign-status";
 import type { LaunchData } from "@/lib/launch/types";
 import {
   getLowestAvailablePrice,
@@ -30,47 +30,43 @@ type PublicLandingPageProps = {
 
 export function PublicLandingPage({ data, compact = false }: PublicLandingPageProps) {
   const router = useRouter();
-  const [tab, setTab] = useState<LaunchTabId>("participate");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showSticky, setShowSticky] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
-  const participateRef = useRef<HTMLDivElement>(null);
+  const joinRef = useRef<HTMLDivElement>(null);
 
   const offers = useMemo(() => getPublicOffers(data), [data]);
   const fromPrice = getLowestAvailablePrice(offers.participation);
-  const selected = offers.participation.find(
-    (offer) => offer.product.id === selectedId,
-  )?.product ?? offers.sponsorship.find((offer) => offer.product.id === selectedId)?.product ?? null;
+  const selected =
+    offers.participation.find((offer) => offer.product.id === selectedId)?.product ??
+    offers.sponsorship.find((offer) => offer.product.id === selectedId)?.product ??
+    null;
+  const status = getCampaignDisplayStatus(data);
   const canJoin = isLiveLaunch(data);
   const waitlist = data.salesMode === "waitlist";
-
-  const coCreate = useMemo(
-    () => getPublicCoCreate(data.id),
-    [data.id],
-  );
-  const updates = useMemo(() => getPublicUpdates(data.id), [data.id]);
-  const momentum = useMemo(() => getPublicMomentum(data.id), [data.id]);
+  const ended = status === "ended" || status === "cancelled";
+  const remainingSpots = offers.participation.reduce<number | null>((lowest, offer) => {
+    const remaining = offer.capacity.remaining;
+    if (remaining === "unlimited" || offer.capacity.soldOut) return lowest;
+    if (lowest === null) return remaining;
+    return Math.min(lowest, remaining);
+  }, null);
+  const budgetLines = data.budgetLines ?? [];
 
   useEffect(() => {
     if (compact) return;
     const node = progressRef.current;
     if (!node) return;
-
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setShowSticky(!entry.isIntersecting);
-      },
-      { threshold: 0.15 },
+      ([entry]) => setShowSticky(!entry.isIntersecting),
+      { threshold: 0.12 },
     );
     observer.observe(node);
     return () => observer.disconnect();
   }, [compact]);
 
-  function scrollToParticipate() {
-    setTab("participate");
-    window.requestAnimationFrame(() => {
-      participateRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+  function scrollToJoin() {
+    joinRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function joinProduct(productId: string) {
@@ -86,71 +82,63 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
       joinProduct(selectedId);
       return;
     }
-    scrollToParticipate();
+    scrollToJoin();
   }
 
   return (
     <div
-      className={`bg-white ${
+      className={`bg-[#fff7fa] ${
         compact ? "overflow-hidden rounded-[2rem] shadow-meuse-card" : "min-h-dvh"
       }`}
     >
       {!compact && (
-        <header className="sticky top-0 z-30 border-b border-zinc-100 bg-white/95 backdrop-blur-sm">
-          <div className="mx-auto flex h-12 max-w-[760px] items-center justify-between px-5">
+        <header className="sticky top-0 z-30 border-b border-pink-100/80 bg-white/90 backdrop-blur-sm">
+          <div className="mx-auto flex h-12 max-w-[800px] items-center justify-between px-5 lg:max-w-5xl">
             <span className="font-meuse-display text-lg font-extrabold tracking-tight meuse-gradient-text">
               meuse
             </span>
-            <span className="text-xs font-medium text-zinc-400">Launch</span>
+            <nav className="hidden items-center gap-4 text-sm text-zinc-500 sm:flex">
+              <a href="#overview" className="hover:text-zinc-800">Overview</a>
+              <a href="#join" className="hover:text-zinc-800">Join</a>
+              {offers.sponsorship.length > 0 && (
+                <a href="#sponsors" className="hover:text-zinc-800">Sponsors</a>
+              )}
+              <a href="#updates" className="hover:text-zinc-800">Updates</a>
+            </nav>
           </div>
         </header>
       )}
 
-      <div className={compact ? "" : "mx-auto max-w-[760px]"}>
-        <LaunchHero data={data} compact={compact} />
-
-        <div className={compact ? "px-4" : "px-5 sm:px-6"}>
-          <div ref={progressRef} className={compact ? "mt-5" : "mt-6"}>
-            <LiveProgressSection data={data} />
-          </div>
-
-          <div className="mt-5">
-            <h2 className="text-lg font-bold tracking-tight text-zinc-900">
-              Join the Project
-            </h2>
-            <button
-              type="button"
-              onClick={scrollToParticipate}
-              className={`mt-3 w-full rounded-full py-3.5 text-sm font-semibold ${
-                canJoin
-                  ? "text-white meuse-gradient-bg shadow-lg shadow-pink-200/50"
-                  : "bg-zinc-100 text-zinc-400"
-              }`}
-            >
-              {data.status !== "published"
-                ? "Preview only"
-                : waitlist
-                  ? "Join Waitlist"
-                  : "See Ways to Join"}
-            </button>
-            <p className="mt-2 text-center text-sm text-zinc-400">
-              Choose how you want to participate.
-            </p>
-          </div>
+      {status === "draft" && !compact && (
+        <div className="border-b border-amber-100 bg-amber-50 px-4 py-2.5 text-center text-sm text-amber-800">
+          <span className="font-semibold">DRAFT</span>
+          {" — "}This is how your Launch will look when published.{" "}
+          <Link href="/dashboard/overview" className="font-semibold underline">
+            Edit Launch
+          </Link>
         </div>
+      )}
 
-        <div className={compact ? "mt-6" : "mt-8"}>
-          <LaunchTabs
-            active={tab}
-            onChange={setTab}
-            sticky={!compact}
-          />
+      <div className={compact ? "" : "mx-auto max-w-5xl lg:grid lg:grid-cols-[minmax(0,800px)_16rem] lg:items-start lg:justify-center lg:gap-8 lg:px-6"}>
+        <div className={compact ? "" : "mx-auto w-full max-w-[800px]"}>
+          <div id="overview">
+            <LaunchHero data={data} compact={compact} />
+          </div>
 
-          <div
-            ref={participateRef}
-            className={compact ? "scroll-mt-4 px-4 pt-5" : "scroll-mt-28 px-5 pt-5 sm:px-6"}
-          >
-            {tab === "participate" && (
+          <div className={compact ? "px-4" : "px-5 sm:px-6"}>
+            <div ref={progressRef} className="mt-8">
+              <LiveProgressSection
+                data={data}
+                canJoin={canJoin}
+                onJoin={scrollToJoin}
+              />
+            </div>
+
+            <div
+              id="join"
+              ref={joinRef}
+              className={compact ? "mt-10 scroll-mt-4" : "mt-12 scroll-mt-16"}
+            >
               <ParticipatePanel
                 offers={offers.participation}
                 selectedId={selectedId}
@@ -159,38 +147,49 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
                 onSelect={setSelectedId}
                 onJoin={joinProduct}
               />
+            </div>
+
+            {budgetLines.length > 0 && (
+              <div className="mt-12">
+                <WhatItTakesCard
+                  lines={budgetLines}
+                  goalType={getCampaignGoalType(data)}
+                  goalValue={getCampaignGoalValue(data)}
+                  variant="public"
+                />
+              </div>
             )}
-            {tab === "cocreate" && (
-              <CoCreatePanel
-                entries={coCreate}
-                momentum={momentum}
-                onJoin={scrollToParticipate}
-              />
+
+            {offers.sponsorship.length > 0 && (
+              <div id="sponsors" className="mt-12 scroll-mt-16">
+                <SponsorshipSection
+                  offers={offers.sponsorship}
+                  canJoin={canJoin}
+                  onJoin={joinProduct}
+                />
+              </div>
             )}
-            {tab === "updates" && (
-              <UpdatesPanel
-                posts={updates}
-                momentum={momentum}
-                onCta={() => setTab("cocreate")}
-              />
-            )}
+
+            <div className="mt-12">
+              <ProjectDetails data={data} />
+            </div>
+            <div className="mt-12">
+              <ProjectStory data={data} />
+            </div>
+            <div id="updates" className={`mt-12 scroll-mt-16 ${compact ? "pb-6" : "pb-28"}`}>
+              <UpdatesPanel campaignId={data.id} />
+            </div>
           </div>
         </div>
 
-        <div className={compact ? "px-4 pb-6" : "px-5 pb-28 sm:px-6"}>
-          <div className="mt-10">
-            <SponsorshipSection
-              offers={offers.sponsorship}
-              creatorName={data.creatorName}
-              canJoin={canJoin}
-              onJoin={joinProduct}
-            />
-          </div>
-
-          <div className="mt-10">
-            <ProjectStory data={data} />
-          </div>
-        </div>
+        {!compact && !ended && (
+          <DesktopSummaryCard
+            data={data}
+            offers={offers.participation}
+            canJoin={canJoin}
+            onJoin={scrollToJoin}
+          />
+        )}
       </div>
 
       {!compact && showSticky && (
@@ -198,7 +197,9 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
           data={data}
           selected={selected}
           fromPrice={fromPrice}
+          remainingSpots={remainingSpots}
           canJoin={canJoin}
+          ended={ended}
           onJoin={handleStickyJoin}
         />
       )}

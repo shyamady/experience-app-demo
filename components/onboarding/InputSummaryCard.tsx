@@ -2,6 +2,7 @@ type InputSummaryCardProps = {
   activity: string;
   category?: string;
   needs?: string;
+  goal?: string;
   participation: string;
 };
 
@@ -9,9 +10,11 @@ export function InputSummaryCard({
   activity,
   category,
   needs,
+  goal,
   participation,
 }: InputSummaryCardProps) {
-  const hasContent = activity || category || needs || participation;
+  const goalLine = goal || needs;
+  const hasContent = activity || category || goalLine || participation;
 
   if (!hasContent) return null;
 
@@ -23,8 +26,8 @@ export function InputSummaryCard({
       {category && (
         <p className="mt-0.5 text-xs text-zinc-500 sm:text-sm">{category}</p>
       )}
-      {needs && (
-        <p className="mt-0.5 text-xs text-zinc-500 sm:text-sm">{needs}</p>
+      {goalLine && (
+        <p className="mt-0.5 text-xs text-zinc-500 sm:text-sm">{goalLine}</p>
       )}
       {participation && (
         <p className="mt-1 text-xs text-pink-500 sm:text-sm">{participation}</p>

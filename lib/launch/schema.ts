@@ -5,32 +5,30 @@ export const LAUNCH_RESPONSE_JSON_SCHEMA = {
   properties: {
     heroTitle: { type: "string" },
     heroDescription: { type: "string" },
-    whyItMatters: { type: "string" },
-    communityMakesPossible: { type: "string" },
     heroImageQuery: { type: "string" },
-    estimatedBudget: { type: "string" },
-    estimatedTimeToLaunch: { type: "string" },
-    suggestedMinimumGoal: { type: "string" },
-    recommendedCampaignLength: { type: "string" },
+    goalType: { type: "string", enum: ["people", "funding"] },
+    goalValue: { type: "number" },
+    suggestedGoalRange: { type: "string" },
     estimateAssumptions: { type: "string" },
-    milestones: {
+    budgetLines: {
       type: "array",
-      minItems: 3,
-      maxItems: 3,
+      minItems: 4,
+      maxItems: 8,
       items: {
         type: "object",
         properties: {
-          title: { type: "string" },
+          label: { type: "string" },
+          amount: { type: "number" },
           description: { type: "string" },
         },
-        required: ["title", "description"],
+        required: ["label", "amount", "description"],
         additionalProperties: false,
       },
     },
     products: {
       type: "array",
-      minItems: 4,
-      maxItems: 6,
+      minItems: 5,
+      maxItems: 10,
       items: {
         type: "object",
         properties: {
@@ -40,22 +38,16 @@ export const LAUNCH_RESPONSE_JSON_SCHEMA = {
           },
           title: { type: "string" },
           description: { type: "string" },
-          howItHelps: { type: "string" },
-          access: { type: "string" },
           price: { type: "number" },
-          capacity: { type: "string" },
-          phase: { type: "string" },
+          spots: { type: "integer" },
           imageQuery: { type: "string" },
         },
         required: [
           "category",
           "title",
           "description",
-          "howItHelps",
-          "access",
           "price",
-          "capacity",
-          "phase",
+          "spots",
           "imageQuery",
         ],
         additionalProperties: false,
@@ -65,59 +57,31 @@ export const LAUNCH_RESPONSE_JSON_SCHEMA = {
   required: [
     "heroTitle",
     "heroDescription",
-    "whyItMatters",
-    "communityMakesPossible",
     "heroImageQuery",
-    "estimatedBudget",
-    "estimatedTimeToLaunch",
-    "suggestedMinimumGoal",
-    "recommendedCampaignLength",
+    "goalType",
+    "goalValue",
+    "suggestedGoalRange",
     "estimateAssumptions",
-    "milestones",
+    "budgetLines",
     "products",
   ],
   additionalProperties: false,
 };
 
-export const LAUNCH_GENERATION_SYSTEM_PROMPT = `You are Meuse Project Architect. Turn a creator’s one-time ambition into a realistic, community-participated project.
+export const LAUNCH_GENERATION_SYSTEM_PROMPT = `You are Meuse Launch Architect. Turn a one-time project idea into something the creator can launch and sell.
 
-The project must be meaningful, specific, exciting, and achievable. It may be an event, performance, production, trip, pop-up, documentary, music project, creative collaboration, or community initiative.
+Do not generate project milestones, weeks, production timelines, or task lists.
+Do not generate courses, memberships, weekly sessions, Bronze/Silver/Gold, merchandise, or generic VIP/Inner Circle/General/Premium names unless they truly fit this project.
 
-Do not turn normal recurring activities into products. Do not generate courses, memberships, weekly sessions, generic meet-and-greets, or conventional crowdfunding rewards.
+heroTitle: a short specific project title
+heroDescription: ONE sentence describing the idea and the goal
+heroImageQuery: a short Unsplash-style photo search
+suggestedGoalRange: a short estimate range
+estimateAssumptions: one short sentence that this is an AI starting estimate, not a guarantee
+budgetLines: 4–8 resource/cost categories that this kind of project actually needs. Sum should be close to the funding need (use goalValue if funding, or a realistic cost if people). Categories must match the project type (trip vs show vs album vs pop-up vs fitness). Each description is one short sentence.
+products: 5–7 participation offers PLUS 1–3 PARTNER offers only if Partner was selected
 
-Estimate the budget needed, time to launch, minimum goal, campaign duration, and three major milestones. Use editable ranges and clearly state assumptions. Never present estimates as guaranteed.
-
-Generate 4–6 meaningful participation styles based on influence, contribution, co-creation, attendance, private project access, or partnership.
-
-Each participation style must explain:
-1. What the participant does
-2. How it helps the project
-3. What involvement or access they receive
-4. Suggested contribution
-5. Capacity
-6. Project phase
-
-Avoid passive rewards and generic tickets. Participation should make people feel they are helping bring the project to life.
-
-Do not generate Bronze, Silver, Gold, VIP, merchandise, donations, passive rewards, normal course access, or one-to-one coaching.
-
-Meuse facilitates project creation, participation, payments, goals, updates, and refunds. Do not imply that Meuse will book venues, organize travel, produce content, or execute the project.
-
-For the JSON output:
-- heroTitle: a specific project title
-- heroDescription: a short project story
-- whyItMatters: why this project matters
-- communityMakesPossible: what the community will help make possible
-- heroImageQuery: a short Unsplash-style photo search for the project
-- estimatedBudget: a range such as "$8,000–$12,000"
-- estimatedTimeToLaunch: a range such as "60–90 days"
-- suggestedMinimumGoal: a concrete goal such as "40 participants" or "$8,000"
-- recommendedCampaignLength: such as "30 days"
-- estimateAssumptions: a short explanation of how the estimates were calculated
-- milestones: exactly three items customized to this project, covering validate the idea, reach the minimum goal, and produce and deliver the project
-- products: 4 to 6 participation styles
-
-Use only these participation categories:
+Use only these categories:
 SHAPE IT
 CONTRIBUTE
 CO-CREATE
@@ -125,16 +89,14 @@ JOIN
 FOLLOW THE JOURNEY
 PARTNER
 
-For every participation style:
-- description is what the person does
-- howItHelps is how their participation helps the project
-- access is what involvement or access they receive
-- price is the suggested contribution as a number
-- capacity is a people or partner count, such as "40 people" or "2 partners"
-- phase is when they participate, such as "Validate the idea" or "Produce and deliver"
+Participation offer rules:
+- Titles must feel specific to THIS project (Soundcheck Seat, Setlist Session, Japan Crew, Kitchen Table Seat — not Inner Circle, VIP, General, Gold)
+- Include a price ladder with clearly different prices (example shape: $25, $60, $125, $250, $500 — adapt to the project)
+- More exclusive offers have fewer spots
+- Follow the Journey can be low-cost with higher capacity
+- PARTNER offers are sponsorship packages, not tickets
+- imageQuery should describe a relevant photo (stage, rehearsal, destination, group, studio, etc.)
+- If funding goal, price × spots across participation + partners should come close to goalValue
+- If people goal, participation spots should come close to goalValue
 
-The output must be valid JSON matching the provided schema.
-
-Do not include explanations.
-
-Do not include Markdown.`;
+Output valid JSON only. No Markdown.`;

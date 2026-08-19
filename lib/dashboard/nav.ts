@@ -31,33 +31,17 @@ export const DASHBOARD_NAV_GROUPS: DashboardNavGroup[] = [
   {
     label: "My Launch",
     items: [
-      { label: "Home", href: "/dashboard", icon: "home" },
-      { label: "Launch Page", href: "/dashboard/launch-page", icon: "page" },
+      { label: "Launches", href: "/dashboard", icon: "home" },
+      { label: "Overview", href: "/dashboard/overview", icon: "page" },
     ],
   },
   {
     label: "Sell",
     items: [
-      { label: "Sales", href: "/dashboard/sales", icon: "sales" },
       { label: "Participation", href: "/dashboard/products", icon: "product" },
       { label: "Sponsorship", href: "/dashboard/sponsors", icon: "sponsors" },
       { label: "Orders", href: "/dashboard/orders", icon: "orders" },
-      { label: "Attendees", href: "/dashboard/attendees", icon: "attendees" },
-    ],
-  },
-  {
-    label: "Community",
-    items: [
-      { label: "Co-Create", href: "/dashboard/co-create", icon: "cocreate" },
-      { label: "Community Feed", href: "/dashboard/community", icon: "community" },
-      { label: "Members", href: "/dashboard/members", icon: "members" },
-    ],
-  },
-  {
-    label: "Tools",
-    items: [
-      { label: "Messages", href: "/dashboard/messages", icon: "messages" },
-      { label: "Analytics", href: "/dashboard/analytics", icon: "analytics" },
+      { label: "Participants", href: "/dashboard/attendees", icon: "attendees" },
     ],
   },
   {
@@ -69,9 +53,9 @@ export const DASHBOARD_NAV_GROUPS: DashboardNavGroup[] = [
 ];
 
 export const MOBILE_TAB_ITEMS: DashboardNavItem[] = [
-  { label: "Home", href: "/dashboard", icon: "home" },
-  { label: "Co-Create", href: "/dashboard/co-create", icon: "cocreate" },
-  { label: "Community", href: "/dashboard/community", icon: "community" },
+  { label: "Launches", href: "/dashboard", icon: "home" },
+  { label: "Overview", href: "/dashboard/overview", icon: "page" },
+  { label: "Orders", href: "/dashboard/orders", icon: "orders" },
 ];
 
 export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] =

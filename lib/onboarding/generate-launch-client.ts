@@ -33,7 +33,10 @@ export async function requestLaunchGeneration(
       );
     }
 
-    const launch = normalizeLaunchResponse(data);
+    const launch = normalizeLaunchResponse(data, {
+      type: body.goalType,
+      value: body.goalUnsure ? 0 : body.goalValue,
+    });
     if (!launch) {
       throw new Error("Failed to generate launch.");
     }

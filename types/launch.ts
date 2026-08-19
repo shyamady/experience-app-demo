@@ -1,3 +1,9 @@
+export interface BudgetLine {
+  label: string;
+  amount: number;
+  description: string;
+}
+
 export interface LaunchProduct {
   category: string;
   title: string;
@@ -5,6 +11,7 @@ export interface LaunchProduct {
   howItHelps: string;
   access: string;
   price: number;
+  spots: number;
   capacity: string;
   phase: string;
   imageQuery: string;
@@ -19,25 +26,32 @@ export interface ProjectMilestone {
 export interface LaunchResponse {
   heroTitle: string;
   heroDescription: string;
-  whyItMatters: string;
-  communityMakesPossible: string;
   heroImageQuery: string;
   heroImageUrl?: string;
-  estimatedBudget: string;
-  estimatedTimeToLaunch: string;
-  suggestedMinimumGoal: string;
-  recommendedCampaignLength: string;
+  goalType: "people" | "funding";
+  goalValue: number;
+  suggestedGoalRange: string;
   estimateAssumptions: string;
-  milestones: ProjectMilestone[];
   products: LaunchProduct[];
-  /** Present on older generated sessions; no longer produced by the API. */
+  budgetLines: BudgetLine[];
+  gapSuggestions: string[];
+  whyItMatters?: string;
+  communityMakesPossible?: string;
+  estimatedBudget?: string;
+  estimatedTimeToLaunch?: string;
+  suggestedMinimumGoal?: string;
+  recommendedCampaignLength?: string;
+  milestones?: ProjectMilestone[];
   estimatedRevenue?: string;
 }
 
 export interface GenerateLaunchRequest {
   activity: string;
   category?: string;
-  needs: string[];
-  knownDetails?: string;
+  goalType: "people" | "funding";
+  goalValue: number;
+  goalUnsure?: boolean;
   participation: string[];
+  needs?: string[];
+  knownDetails?: string;
 }

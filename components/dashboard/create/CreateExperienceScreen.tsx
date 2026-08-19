@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowIcon } from "@/components/icons/ArrowIcon";
 import { SparkleIcon } from "@/components/icons/SparkleIcon";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { GlobalDashboardShell } from "@/components/dashboard/GlobalDashboardShell";
 import { CalendarCreateSection } from "@/components/dashboard/create/CalendarCreateSection";
 import { InspirationCreateSection } from "@/components/dashboard/create/InspirationCreateSection";
 import {
@@ -40,7 +40,7 @@ export function CreateExperienceScreen() {
 
   function startGeneration(prompt: string) {
     saveOnboardingData({ activity: prompt.trim() });
-    router.push("/onboarding/needs");
+    router.push("/onboarding/goal");
   }
 
   function handleExampleSelect(example: string) {
@@ -73,7 +73,7 @@ export function CreateExperienceScreen() {
   }
 
   return (
-    <DashboardShell variant="workspace">
+    <GlobalDashboardShell>
       <div className="relative min-h-full overflow-hidden bg-[radial-gradient(ellipse_100%_70%_at_50%_-10%,rgba(255,182,213,0.22),transparent_55%),linear-gradient(to_bottom,#fff9fb_0%,#ffffff_45%,#fff5f9_100%)]">
         <div
           aria-hidden
@@ -171,6 +171,6 @@ export function CreateExperienceScreen() {
           </div>
         </div>
       </div>
-    </DashboardShell>
+    </GlobalDashboardShell>
   );
 }

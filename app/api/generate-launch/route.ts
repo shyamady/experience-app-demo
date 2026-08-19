@@ -3,61 +3,52 @@ import { generateLaunchWithOpenAI } from "@/lib/launch/generate";
 import type { GenerateLaunchRequest } from "@/types/launch";
 import { NextResponse } from "next/server";
 
-function isGenerateLaunchRequest(
-  value: unknown,
-): value is GenerateLaunchRequest {
-  if (typeof value !== "object" || value === null) return false;
-
+function toGenerateLaunchRequest(value: unknown): GenerateLaunchRequest | null {
+  if (typeof value !== "object" || value === null) return null;
   const body = value as Record<string, unknown>;
-  const needs = Array.isArray(body.needs)
-    ? body.needs
-    : body.frequency
-      ? ["Funding", "Participants"]
-      : null;
+  if (typeof body.activity !== "string") return null;
+  if (!Array.isArray(body.participation)) return null;
 
-  return (
-    typeof body.activity === "string" &&
-    Array.isArray(needs) &&
-    needs.every((item) => typeof item === "string") &&
-    Array.isArray(body.participation) &&
-    body.participation.every((item) => typeof item === "string") &&
-    (body.category === undefined || typeof body.category === "string") &&
-    (body.knownDetails === undefined || typeof body.knownDetails === "string")
-  );
-}
+  const goalType =
+    body.goalType === "people" || body.goalType === "funding"
+      ? body.goalType
+      : Array.isArray(body.needs) &&
+          body.needs.some((item) => String(item).toLowerCase().includes("fund"))
+        ? "funding"
+        : "people";
 
-function toGenerateLaunchRequest(value: unknown): GenerateLaunchRequest {
-  const body = value as Record<string, unknown>;
-  const needs = Array.isArray(body.needs)
-    ? body.needs.filter((item): item is string => typeof item === "string")
-    : ["Funding", "Participants"];
+  const goalValue =
+    typeof body.goalValue === "number" && Number.isFinite(body.goalValue)
+      ? body.goalValue
+      : goalType === "people"
+        ? 50
+        : 10000;
 
   return {
-    activity: String(body.activity),
+    activity: body.activity,
     category: typeof body.category === "string" ? body.category : undefined,
-    needs,
+    goalType,
+    goalValue,
+    goalUnsure: Boolean(body.goalUnsure),
+    participation: body.participation.filter(
+      (item): item is string => typeof item === "string",
+    ),
     knownDetails:
       typeof body.knownDetails === "string" ? body.knownDetails : undefined,
-    participation: Array.isArray(body.participation)
-      ? body.participation.filter(
-          (item): item is string => typeof item === "string",
-        )
-      : [],
   };
 }
 
 export async function POST(request: Request) {
   try {
     const body: unknown = await request.json();
+    const launchRequest = toGenerateLaunchRequest(body);
 
-    if (!isGenerateLaunchRequest(body)) {
+    if (!launchRequest) {
       return NextResponse.json(
         { error: "Invalid request body." },
         { status: 400 },
       );
     }
-
-    const launchRequest = toGenerateLaunchRequest(body);
 
     try {
       const launch = await generateLaunchWithOpenAI(launchRequest);

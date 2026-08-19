@@ -57,8 +57,8 @@ export function ParticipationOnboardingScreen() {
             compact
             stepLabel="STEP 3 OF 4"
             headline="How can your community help bring it to life?"
-            supportingText="Choose meaningful ways people can shape, create, or join the project."
-            hint="Select one or more participation styles"
+            supportingText="Choose meaningful ways people can participate in the project."
+            hint="Select one or more"
           />
 
           <ParticipationOptions
@@ -68,7 +68,7 @@ export function ParticipationOnboardingScreen() {
 
           <div className="hidden sm:block">
             <OnboardingNavigation
-              backHref="/onboarding/needs"
+              backHref="/onboarding/goal"
               continueHref="/onboarding/generating"
               canContinue={canContinue}
               onContinue={handleContinue}
@@ -83,7 +83,7 @@ export function ParticipationOnboardingScreen() {
       </div>
 
       <MobileStickyActionBar
-        backHref="/onboarding/needs"
+        backHref="/onboarding/goal"
         continueHref="/onboarding/generating"
         onContinue={handleContinue}
         canContinue={canContinue}

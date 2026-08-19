@@ -28,7 +28,7 @@ import {
   getReadyToCompleteAtMs,
 } from "@/lib/onboarding/generating-progress";
 import {
-  getNeedLabelList,
+  getGoalSummary,
   getOnboardingData,
   getParticipationLabelList,
   getProjectCategoryLabel,
@@ -45,7 +45,8 @@ export function GeneratingScreen() {
     return {
       activity: summarizeActivity(data.activity),
       category: getProjectCategoryLabel(data.projectCategory),
-      needs: getNeedLabelList(data.needIds).join(" · "),
+              needs: getGoalSummary(data),
+              goal: getGoalSummary(data),
       participation: getParticipationLabelList(data.participationIds).join(" · "),
     };
   });
@@ -101,10 +102,9 @@ export function GeneratingScreen() {
           {
             activity: data.activity,
             category: getProjectCategoryLabel(data.projectCategory) || undefined,
-            needs: getNeedLabelList(data.needIds).length
-              ? getNeedLabelList(data.needIds)
-              : ["Funding", "Participants"],
-            knownDetails: data.knownDetails || undefined,
+            goalType: data.goalType ?? "funding",
+            goalValue: data.goalValue || (data.goalType === "people" ? 50 : 10000),
+            goalUnsure: data.goalUnsure,
             participation: getParticipationLabelList(data.participationIds).length
               ? getParticipationLabelList(data.participationIds)
               : ["Shape It", "Join", "Follow the Journey"],
@@ -203,6 +203,7 @@ export function GeneratingScreen() {
             activity={summary.activity}
             category={summary.category}
             needs={summary.needs}
+            goal={summary.needs}
             participation={summary.participation}
           />
 

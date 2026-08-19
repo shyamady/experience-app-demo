@@ -54,7 +54,7 @@ export function getLaunchCommerce(campaign: LaunchData): LaunchCommerce {
     (product) => product.active && isSponsorProduct(product),
   );
 
-  if (campaign.status !== "published") {
+  if (campaign.status === "draft") {
     return {
       total: 0,
       participants: 0,

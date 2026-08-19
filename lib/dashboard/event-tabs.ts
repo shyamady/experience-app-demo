@@ -1,11 +1,11 @@
 export type EventTabId =
   | "overview"
-  | "guests"
-  | "registration"
+  | "participants"
+  | "participation"
+  | "orders"
+  | "sponsors"
   | "updates"
-  | "survey"
-  | "insights"
-  | "sponsors";
+  | "insights";
 
 export type EventTab = {
   id: EventTabId;
@@ -14,28 +14,29 @@ export type EventTab = {
 };
 
 export const EVENT_TABS: EventTab[] = [
-  { id: "overview", label: "Overview", href: "/dashboard" },
-  { id: "guests", label: "Guests", href: "/dashboard/attendees" },
-  { id: "registration", label: "Registration", href: "/dashboard/products" },
-  { id: "updates", label: "Updates", href: "/dashboard/updates" },
-  { id: "survey", label: "Survey", href: "/dashboard/survey" },
-  { id: "insights", label: "Insights", href: "/dashboard/orders" },
+  { id: "overview", label: "Overview", href: "/dashboard/overview" },
+  { id: "participants", label: "Participants", href: "/dashboard/attendees" },
+  { id: "participation", label: "Participation", href: "/dashboard/products" },
+  { id: "orders", label: "Orders", href: "/dashboard/orders" },
   { id: "sponsors", label: "Sponsors", href: "/dashboard/sponsors" },
+  { id: "updates", label: "Updates", href: "/dashboard/updates" },
+  { id: "insights", label: "Insights", href: "/dashboard/analytics" },
 ];
 
 export const EVENT_MORE_LINKS = [
+  { label: "Survey", href: "/dashboard/survey" },
   { label: "Calendar", href: "/dashboard/calendar" },
-  { label: "Create Experience", href: "/dashboard/create" },
-  { label: "Coupons", href: "/dashboard/products" },
+  { label: "Messages", href: "/dashboard/messages" },
+  { label: "Settings", href: "/dashboard/settings" },
 ];
 
 export function getEventTabFromPath(pathname: string): EventTabId | null {
-  if (pathname === "/dashboard") return "overview";
-  if (pathname.startsWith("/dashboard/attendees")) return "guests";
-  if (pathname.startsWith("/dashboard/products")) return "registration";
-  if (pathname.startsWith("/dashboard/updates")) return "updates";
-  if (pathname.startsWith("/dashboard/survey")) return "survey";
-  if (pathname.startsWith("/dashboard/orders")) return "insights";
+  if (pathname.startsWith("/dashboard/overview")) return "overview";
+  if (pathname.startsWith("/dashboard/attendees")) return "participants";
+  if (pathname.startsWith("/dashboard/products")) return "participation";
+  if (pathname.startsWith("/dashboard/orders")) return "orders";
   if (pathname.startsWith("/dashboard/sponsors")) return "sponsors";
+  if (pathname.startsWith("/dashboard/updates")) return "updates";
+  if (pathname.startsWith("/dashboard/analytics")) return "insights";
   return null;
 }

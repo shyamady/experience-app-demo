@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { LaunchDashboardShell } from "@/components/dashboard/LaunchDashboardShell";
 import { CalendarHeader } from "@/components/calendar/CalendarHeader";
 import { SessionFilters } from "@/components/calendar/SessionFilters";
 import { SessionList } from "@/components/calendar/SessionList";
@@ -333,7 +333,7 @@ export function CalendarScreen() {
   }
 
   return (
-    <DashboardShell variant="workspace">
+    <LaunchDashboardShell>
       <div className="relative px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
         <CalendarHeader
           viewMode={viewMode}
@@ -450,7 +450,7 @@ export function CalendarScreen() {
           {toast}
         </div>
       )}
-    </DashboardShell>
+    </LaunchDashboardShell>
   );
 }
 

@@ -1,10 +1,5 @@
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { CoCreateScreen } from "@/components/dashboard/cocreate/CoCreateScreen";
+import { redirect } from "next/navigation";
 
 export default function CoCreatePage() {
-  return (
-    <DashboardShell>
-      <CoCreateScreen />
-    </DashboardShell>
-  );
+  redirect("/dashboard/overview");
 }

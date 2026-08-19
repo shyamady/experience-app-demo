@@ -3,20 +3,25 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { EVENT_MORE_LINKS, EVENT_TABS } from "@/lib/dashboard/event-tabs";
+import {
+  EVENT_MORE_LINKS,
+  EVENT_TABS,
+  getEventTabFromPath,
+} from "@/lib/dashboard/event-tabs";
 
 export function EventDashboardTabs() {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
+  const activeId = getEventTabFromPath(pathname);
+  const moreActive = EVENT_MORE_LINKS.some(
+    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
+  );
 
   return (
     <div className="relative border-b border-zinc-200">
       <nav className="-mb-px flex items-center gap-1 overflow-x-auto">
         {EVENT_TABS.map((tab) => {
-          const isActive =
-            pathname === tab.href ||
-            (tab.href !== "/dashboard" && pathname.startsWith(tab.href));
-
+          const isActive = activeId === tab.id;
           return (
             <Link
               key={tab.id}
@@ -36,7 +41,11 @@ export function EventDashboardTabs() {
           <button
             type="button"
             onClick={() => setMoreOpen((open) => !open)}
-            className="flex items-center gap-1 border-b-2 border-transparent px-3 py-3 text-sm text-zinc-500 transition hover:text-zinc-800"
+            className={`flex items-center gap-1 border-b-2 px-3 py-3 text-sm transition ${
+              moreActive
+                ? "border-[#FF4F9A] font-semibold text-zinc-900"
+                : "border-transparent text-zinc-500 hover:text-zinc-800"
+            }`}
           >
             More
             <svg

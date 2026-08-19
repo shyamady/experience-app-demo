@@ -1,59 +1,100 @@
 import type { LaunchData } from "@/lib/launch/types";
-import { getProjectOutline } from "@/lib/launch/public-view";
+import { formatFirstDate, getLocationDisplay } from "@/lib/launch/formatting";
+import { getExpectedDateCopy } from "@/lib/launch/public-view";
 
 type ProjectStoryProps = {
   data: LaunchData;
 };
 
 export function ProjectStory({ data }: ProjectStoryProps) {
-  const outline = getProjectOutline(data);
+  const story = data.creatorNote || data.whyItMatters;
+
+  if (!story) return null;
+
+  const paragraphs = story.split(/\n+/).filter(Boolean).slice(0, 3);
 
   return (
-    <div className="space-y-8">
-      {outline && (
-        <section>
-          <h2 className="text-lg font-bold tracking-tight text-zinc-900">
-            What we’re making
-          </h2>
-          <p className="mt-3 text-sm font-semibold text-zinc-800">
-            {outline.heading}
-          </p>
-          <ol className="mt-3 space-y-3">
-            {outline.items.map((item) => (
-              <li key={item.title} className="rounded-[1.25rem] border border-zinc-100 bg-white px-4 py-3">
-                <p className="text-sm font-semibold text-zinc-900">{item.title}</p>
-                <p className="mt-1 text-sm leading-relaxed text-zinc-600">
-                  {item.description}
-                </p>
-              </li>
+    <section>
+      <h2 className="text-2xl font-bold tracking-tight text-zinc-900">
+        Why I want to make this happen
+      </h2>
+      <div className="mt-5 flex items-start gap-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={data.avatarUrl}
+          alt=""
+          className="h-16 w-16 shrink-0 rounded-full object-cover shadow-meuse-chip"
+        />
+        <div>
+          <p className="text-sm font-semibold text-pink-500">{data.creatorName}</p>
+          <div className="mt-2 space-y-3">
+            {paragraphs.map((paragraph) => (
+              <p key={paragraph} className="text-[0.975rem] leading-relaxed text-zinc-600">
+                {paragraph}
+              </p>
             ))}
-          </ol>
-        </section>
-      )}
-
-      {(data.creatorNote || data.whyItMatters) && (
-        <section>
-          <h2 className="text-lg font-bold tracking-tight text-zinc-900">
-            Why I’m making this
-          </h2>
-          <div className="mt-3 flex items-start gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={data.avatarUrl}
-              alt=""
-              className="h-11 w-11 shrink-0 rounded-full object-cover"
-            />
-            <div>
-              <p className="text-sm font-semibold text-zinc-900">
-                {data.creatorName}
-              </p>
-              <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">
-                {data.creatorNote || data.whyItMatters}
-              </p>
-            </div>
           </div>
-        </section>
-      )}
-    </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function ProjectDetails({ data }: { data: LaunchData }) {
+  const location = getLocationDisplay(data) || data.city || data.venue;
+  const setting =
+    data.locationType === "online"
+      ? "Online"
+      : data.locationType === "hybrid"
+        ? "In-person and online"
+        : data.locationType === "in-person"
+          ? "In-person"
+          : "";
+  const capacity =
+    data.totalSpots === "unlimited"
+      ? "Open"
+      : `${data.totalSpots} people`;
+  const deadline = data.cutOffDate ? formatFirstDate(data.cutOffDate) : "";
+
+  const rows: { label: string; value: string }[] = [
+    {
+      label: "Location",
+      value: location || "To be confirmed",
+    },
+  ];
+  if (deadline) {
+    rows.push({ label: "Campaign deadline", value: `Join by ${deadline}` });
+  }
+  if (setting) rows.push({ label: "Format", value: setting });
+  rows.push({ label: "Capacity", value: capacity });
+  if (data.demandValidationEnabled && deadline) {
+    rows.push({
+      label: "If the goal is not reached",
+      value: `Participants are refunded according to the Launch terms.`,
+    });
+  }
+  rows.push({
+    label: "Important terms",
+    value: "Joining is a commitment to this Launch and the selected participation.",
+  });
+
+  return (
+    <section>
+      <h2 className="text-2xl font-bold tracking-tight text-zinc-900">
+        Project details
+      </h2>
+      <p className="mt-3 text-sm font-medium text-zinc-500">Expected to happen</p>
+      <p className="text-lg font-bold text-zinc-900">{getExpectedDateCopy(data)}</p>
+      <dl className="mt-5 space-y-3">
+        {rows.map((row) => (
+          <div key={row.label} className="flex items-start justify-between gap-4">
+            <dt className="text-sm text-zinc-500">{row.label}</dt>
+            <dd className="max-w-[62%] text-right text-sm font-medium text-zinc-800">
+              {row.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }

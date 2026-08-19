@@ -14,6 +14,9 @@ import {
   type ProjectNeedId,
 } from "@/lib/onboarding/needs";
 import {
+  type GoalType,
+} from "@/lib/onboarding/goal";
+import {
   PARTICIPATION_OPTIONS,
   type ParticipationId,
 } from "@/lib/onboarding/participation";
@@ -27,6 +30,9 @@ export type OnboardingData = {
   projectCategory: SuggestionId | null;
   needIds: ProjectNeedId[];
   knownDetails: string;
+  goalType: GoalType | null;
+  goalValue: number;
+  goalUnsure: boolean;
   dateMode: DateMode;
   singleDate: string;
   startDate: string;
@@ -50,6 +56,9 @@ const DEFAULT_DATA: OnboardingData = {
   projectCategory: null,
   needIds: [],
   knownDetails: "",
+  goalType: null,
+  goalValue: 0,
+  goalUnsure: false,
   dateMode: "one-day",
   singleDate: "",
   startDate: "",
@@ -96,6 +105,16 @@ function migrateStoredData(parsed: Partial<OnboardingData>): OnboardingData {
 
   if ((!merged.needIds || merged.needIds.length === 0) && parsed.frequencyId) {
     merged.needIds = ["funding", "participants"];
+  }
+
+  if (!merged.goalType) {
+    if (merged.needIds.includes("funding") && !merged.needIds.includes("participants")) {
+      merged.goalType = "funding";
+      merged.goalValue = merged.goalValue || 10000;
+    } else if (merged.needIds.includes("participants")) {
+      merged.goalType = "people";
+      merged.goalValue = merged.goalValue || 50;
+    }
   }
 
   return merged;
@@ -166,6 +185,22 @@ export function getProjectCategoryLabel(
 export function getFrequencyLabel(id: FrequencyId): string {
   const option = FREQUENCY_OPTIONS.find((item) => item.id === id);
   return option?.label ?? "Custom";
+}
+
+export function getGoalSummary(data: OnboardingData): string {
+  if (!data.goalType || !data.goalValue) return "";
+  if (data.goalType === "people") {
+    return data.goalUnsure
+      ? "People · recommend for me"
+      : `${data.goalValue} people`;
+  }
+  return data.goalUnsure
+    ? "Funding · recommend for me"
+    : new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 0,
+      }).format(data.goalValue);
 }
 
 export function getNeedLabels(ids: ProjectNeedId[]): string {

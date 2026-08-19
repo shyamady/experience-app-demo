@@ -1,10 +1,5 @@
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { CommunityFeedScreen } from "@/components/dashboard/community/CommunityFeedScreen";
+import { redirect } from "next/navigation";
 
 export default function CommunityPage() {
-  return (
-    <DashboardShell>
-      <CommunityFeedScreen />
-    </DashboardShell>
-  );
+  redirect("/dashboard/overview");
 }

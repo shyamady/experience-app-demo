@@ -1,10 +1,5 @@
-import { LaunchHomeScreen } from "@/components/dashboard/home/LaunchHomeScreen";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { LaunchesListScreen } from "@/components/dashboard/home/LaunchesListScreen";
 
 export default function DashboardPage() {
-  return (
-    <DashboardShell>
-      <LaunchHomeScreen />
-    </DashboardShell>
-  );
+  return <LaunchesListScreen />;
 }

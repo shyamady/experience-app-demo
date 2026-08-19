@@ -46,7 +46,7 @@ export function ParticipationOptions({
 }: ParticipationOptionsProps) {
   return (
     <div className="space-y-2.5">
-      <OnboardingSectionTitle>Ways to participate</OnboardingSectionTitle>
+      <OnboardingSectionTitle>Choose how people can help</OnboardingSectionTitle>
       <div
         className="meuse-fade-in-up flex flex-col gap-2 sm:gap-2.5"
         style={{ animationDelay: "0.12s" }}

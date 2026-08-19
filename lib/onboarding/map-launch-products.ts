@@ -7,6 +7,10 @@ import type {
   ExperienceProduct,
   ExperienceSpots,
 } from "@/lib/onboarding/experiences";
+import {
+  EXPERIENCE_IMAGES,
+  PARTICIPATION_IMAGE_KEYS,
+} from "@/lib/onboarding/experiences";
 import { getPlaceholderImageUrl } from "@/lib/unsplash/search-photos";
 import type { LaunchProduct } from "@/types/launch";
 
@@ -48,7 +52,10 @@ function isProductCategory(value: string): value is ProductCategory {
   return PRODUCT_CATEGORIES.includes(value as ProductCategory);
 }
 
-function parseCapacity(capacity: string): ExperienceSpots {
+function parseCapacity(capacity: string, spots?: number): ExperienceSpots {
+  if (typeof spots === "number" && Number.isFinite(spots) && spots > 0) {
+    return spots;
+  }
   const normalized = capacity.trim().toLowerCase();
 
   if (normalized.includes("unlimited")) {
@@ -65,19 +72,33 @@ function parseCapacity(capacity: string): ExperienceSpots {
 export function mapLaunchProducts(
   products: LaunchProduct[],
 ): ExperienceProduct[] {
-  return products.map((product) => ({
-    id: createId(),
-    category: isProductCategory(product.category)
+  return products.map((product, index) => {
+    const category = isProductCategory(product.category)
       ? product.category
-      : normalizeCategory(product.category),
-    title: product.title.trim(),
-    description: product.description.trim(),
-    howItHelps: product.howItHelps.trim(),
-    access: product.access.trim(),
-    phase: product.phase.trim(),
-    price: product.price,
-    spots: parseCapacity(product.capacity),
-    imageUrl: product.imageUrl ?? getPlaceholderImageUrl(),
-    active: true,
-  }));
+      : normalizeCategory(product.category);
+    const imageUrl =
+      product.imageUrl ??
+      (category === "PARTNER" ||
+      category === "SPONSOR" ||
+      category === "PRESENTING SPONSOR"
+        ? EXPERIENCE_IMAGES.sponsor
+        : EXPERIENCE_IMAGES[
+            PARTICIPATION_IMAGE_KEYS[index % PARTICIPATION_IMAGE_KEYS.length]
+          ]) ??
+      getPlaceholderImageUrl();
+
+    return {
+      id: createId(),
+      category,
+      title: product.title.trim(),
+      description: product.description.trim(),
+      howItHelps: product.howItHelps?.trim(),
+      access: product.access?.trim(),
+      phase: product.phase?.trim(),
+      price: product.price,
+      spots: parseCapacity(product.capacity, product.spots),
+      imageUrl,
+      active: true,
+    };
+  });
 }

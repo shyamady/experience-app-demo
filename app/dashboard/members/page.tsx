@@ -1,7 +1,5 @@
-"use client";
-
-import { AttendeesScreen } from "@/components/dashboard/AttendeesScreen";
+import { redirect } from "next/navigation";
 
 export default function MembersPage() {
-  return <AttendeesScreen heading="Members" />;
+  redirect("/dashboard/attendees");
 }

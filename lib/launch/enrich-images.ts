@@ -7,6 +7,8 @@ import type { LaunchProduct, LaunchResponse } from "@/types/launch";
 async function enrichProductWithImage(
   product: LaunchProduct,
 ): Promise<LaunchProduct> {
+  if (product.imageUrl) return product;
+
   const imageUrl =
     (await searchUnsplashPhoto(product.imageQuery)) ?? getPlaceholderImageUrl();
 

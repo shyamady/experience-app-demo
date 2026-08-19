@@ -1,5 +1,5 @@
-import { NeedsOnboardingScreen } from "@/components/onboarding/NeedsOnboardingScreen";
+import { redirect } from "next/navigation";
 
 export default function NeedsPage() {
-  return <NeedsOnboardingScreen />;
+  redirect("/onboarding/goal");
 }

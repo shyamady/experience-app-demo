@@ -14,7 +14,6 @@ import { mapLaunchProducts } from "@/lib/onboarding/map-launch-products";
 import { getPreviewCreator } from "@/lib/onboarding/preview-creator";
 import {
   createLaunchFromOnboarding,
-  saveLaunchData,
 } from "@/lib/launch/storage";
 import { getPlaceholderImageUrl } from "@/lib/unsplash/search-photos";
 
@@ -90,9 +89,10 @@ export function GeneratePreviewScreen() {
       suggestedMinimumGoal: estimates.suggestedMinimumGoal,
       recommendedCampaignLength: estimates.recommendedCampaignLength,
       estimateAssumptions: estimates.estimateAssumptions,
+      goalType: generated?.goalType,
+      goalValue: generated?.goalValue,
     });
-    saveLaunchData(launch);
-    router.push("/dashboard");
+    router.push("/dashboard/overview");
   }, [estimates, heroDescription, heroImageUrl, heroTitle, products, router]);
 
   const handleDrop = useCallback(
@@ -224,7 +224,7 @@ export function GeneratePreviewScreen() {
               onClick={handleSignUpToLaunch}
               className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-pink-600 shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] sm:text-base"
             >
-              Sign Up to Launch
+              Create My Launch
               <SparkleIcon className="h-4 w-4 text-pink-500" />
             </button>
           </section>

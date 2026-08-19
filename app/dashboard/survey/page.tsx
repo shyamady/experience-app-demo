@@ -4,7 +4,7 @@ export default function SurveyPage() {
   return (
     <PlaceholderTabScreen
       title="Survey"
-      description="Collect feedback from guests after they attend."
+      description="Optional follow-up questions. This is no longer a core part of the launch."
     />
   );
 }

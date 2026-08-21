@@ -13,14 +13,14 @@ function buildUserPrompt(body: GenerateLaunchRequest): string {
   const goalLabel = `$${body.goalValue.toLocaleString()}`;
 
   return [
-    "Turn this creator idea into a funding campaign with unique offers people can buy, join, influence, or sponsor.",
+    "Turn this creator idea into a one-time project with unique offers people can buy, join, or help shape.",
     "",
     `Project idea: ${body.activity}`,
     `Project category: ${body.category || "Not specified"}`,
-    `Funding target: ${goalLabel}${body.goalUnsure ? " (not sure — recommend a realistic target between $500 and $5,000)" : ""}`,
+    `Estimated project cost: ${goalLabel}${body.goalUnsure ? " (not sure — recommend a realistic target between $500 and $5,000)" : ""}`,
     `Offer kinds selected: ${body.participation.join(", ")}`,
     "",
-    "Generate approximately 8 strong Ways to Join offers with a clear price ladder, plus a sponsor offer only if Sponsor was selected.",
+    "Generate approximately 8 strong Ways to Join offers with a clear price ladder. Do not use crowdfunding language like “needed,” “raise,” or “back this project.”",
   ].join("\n");
 }
 

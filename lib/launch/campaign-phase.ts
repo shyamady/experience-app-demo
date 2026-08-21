@@ -1,7 +1,7 @@
 import type { ExperienceProduct } from "@/lib/onboarding/experiences";
 import { EXPERIENCE_IMAGES } from "@/lib/onboarding/experiences";
 import type { LaunchData } from "@/lib/launch/types";
-import { getCampaignProgress } from "@/lib/dashboard/campaign-progress";
+import { getGreenlightState } from "@/lib/launch/greenlight";
 import { formatMoney } from "@/lib/dashboard/commerce";
 import {
   formatDaysLeftCopy,
@@ -14,7 +14,7 @@ export const CAMPAIGN_PHASE_OPTIONS: {
   id: CampaignPhase;
   label: string;
 }[] = [
-  { id: "funding", label: "Funding" },
+  { id: "funding", label: "Greenlight" },
   { id: "greenlit", label: "Greenlit / Live Sale" },
   { id: "during", label: "During" },
   { id: "after", label: "After" },
@@ -22,8 +22,8 @@ export const CAMPAIGN_PHASE_OPTIONS: {
 
 export function getDefaultCampaignPhase(data: LaunchData): CampaignPhase {
   if (data.status === "ended") return "after";
-  const progress = getCampaignProgress(data);
-  if (progress.percent >= 100) return "greenlit";
+  const greenlight = getGreenlightState(data);
+  if (greenlight.isGreenlit) return "greenlit";
   return "funding";
 }
 
@@ -38,33 +38,27 @@ export function getPhaseHeadline(
   data: LaunchData,
   phase: CampaignPhase,
 ): PhaseHeadline {
-  const progress = getCampaignProgress(data);
   const daysCopy = formatDaysLeftCopy(getDaysLeftToJoin(data));
-  const goal = formatMoney(progress.goalValue);
-  const raised = formatMoney(progress.raised);
 
   switch (phase) {
     case "funding":
       return {
         eyebrow: "Help make this happen",
-        title: `${raised} raised`,
-        subtitle: `of ${goal}`,
+        title: "Join to greenlight this project",
+        subtitle: "When enough people are in, it happens.",
         meta: [
-          `${progress.percent}% funded`,
-          daysCopy ?? "Join early to help unlock the project",
+          daysCopy ?? "Join early to help make it real",
         ].filter(Boolean),
       };
     case "greenlit":
       return {
-        eyebrow: "🎉 This is happening",
-        title: "Join before it happens",
+        eyebrow: "✓ Greenlit",
+        title: "It’s happening",
         subtitle: data.firstDate
           ? `Confirmed · ${new Date(`${data.firstDate}T00:00:00`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
           : "The project is confirmed",
         meta: [
           daysCopy ?? "Spots still open",
-          "Early Bird ended",
-          "Updated pricing for new joiners",
         ],
       };
     case "during":
@@ -215,7 +209,7 @@ export function canPurchaseInPhase(_phase: CampaignPhase): boolean {
 export function phasePrimaryCta(phase: CampaignPhase): string {
   switch (phase) {
     case "funding":
-      return "See ways to join";
+      return "Choose how to join";
     case "greenlit":
       return "Join before it happens";
     case "during":

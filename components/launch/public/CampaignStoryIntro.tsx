@@ -1,13 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getCampaignProgress } from "@/lib/dashboard/campaign-progress";
-import { formatMoney } from "@/lib/dashboard/commerce";
+import { getGreenlightState, formatGreenlightDays, formatPeopleIn } from "@/lib/launch/greenlight";
 import type { LaunchData } from "@/lib/launch/types";
-import {
-  formatDaysLeftCopy,
-  getDaysLeftToJoin,
-} from "@/lib/launch/public-view";
 import { markProjectStoryCompleted } from "@/lib/launch/story";
 
 type CampaignStoryIntroProps = {
@@ -116,8 +111,8 @@ export function CampaignStoryIntro({
     };
   }, [goNext, index]);
 
-  const progressValue = getCampaignProgress(data);
-  const daysCopy = formatDaysLeftCopy(getDaysLeftToJoin(data));
+  const greenlight = getGreenlightState(data);
+  const daysCopy = formatGreenlightDays(greenlight.daysLeft);
   const idea =
     data.storyIdea ||
     data.description ||
@@ -225,38 +220,44 @@ export function CampaignStoryIntro({
             )}
             {index === 2 && (
               <div className="max-w-md">
-                <p className="text-sm font-semibold tracking-[0.16em] text-pink-200 uppercase">
-                  Help make this happen
-                </p>
-                <p className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-                  {formatMoney(progressValue.raised)}
-                </p>
-                <p className="mt-1 text-lg text-white/80">
-                  of {formatMoney(progressValue.goalValue)}
-                </p>
-                <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/25">
-                  <div
-                    className="h-full rounded-full meuse-gradient-bg"
-                    style={{
-                      width: `${Math.max(4, progressValue.percent)}%`,
-                    }}
-                  />
-                </div>
-                {daysCopy && (
-                  <p className="mt-3 text-sm font-medium text-white/85">
-                    {daysCopy}
-                  </p>
+                {greenlight.isGreenlit ? (
+                  <>
+                    <p className="text-4xl font-bold tracking-tight sm:text-5xl">
+                      ✓ Greenlit
+                    </p>
+                    <p className="mt-2 text-lg text-white/80">It’s happening</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-4xl font-bold tracking-tight sm:text-5xl">
+                      {greenlight.percent}% to Greenlight
+                    </p>
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/25">
+                      <div
+                        className="h-full rounded-full meuse-gradient-bg"
+                        style={{
+                          width: `${Math.max(4, greenlight.percent)}%`,
+                        }}
+                      />
+                    </div>
+                    <p className="mt-3 text-sm font-medium text-white/85">
+                      {formatPeopleIn(greenlight.people)}
+                    </p>
+                    {daysCopy && (
+                      <p className="mt-1 text-sm text-white/70">{daysCopy}</p>
+                    )}
+                    <p className="mt-2 text-sm text-white/70">
+                      Enough people join, and this gets the green light.
+                    </p>
+                  </>
                 )}
-                <p className="mt-2 text-sm text-white/70">
-                  Join early to help unlock the project.
-                </p>
                 <div className="pointer-events-auto mt-6">
                   <button
                     type="button"
                     onClick={finish}
                     className="rounded-full px-6 py-3 text-sm font-bold text-white meuse-gradient-bg shadow-lg shadow-pink-500/30"
                   >
-                    See ways to join
+                    Choose how to join
                   </button>
                 </div>
               </div>

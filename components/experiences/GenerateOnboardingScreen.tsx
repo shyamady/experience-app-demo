@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BackArrowIcon } from "@/components/icons/BackArrowIcon";
+import { SparkleIcon } from "@/components/icons/SparkleIcon";
 import { AddExperiencePanel } from "@/components/experiences/AddExperiencePanel";
 import { PathToGoalCard } from "@/components/experiences/PathToGoalCard";
 import { PreviewOfferCard } from "@/components/experiences/PreviewOfferCard";
+import { ProjectJourneyCard } from "@/components/experiences/ProjectJourneyCard";
 import { WhatItTakesCard } from "@/components/experiences/WhatItTakesCard";
 import { AiOnboardingMessage } from "@/components/onboarding/AiOnboardingMessage";
 import { GenerationErrorCard } from "@/components/onboarding/GenerationErrorCard";
@@ -17,6 +19,7 @@ import {
 } from "@/components/onboarding/MobileStickyActionBar";
 import { OnboardingHeader } from "@/components/onboarding/OnboardingHeader";
 import { OnboardingProgress } from "@/components/onboarding/OnboardingProgress";
+import { isSponsorProduct } from "@/lib/dashboard/commerce";
 import { budgetLinesForProject } from "@/lib/launch/fallback";
 import { createLaunchFromOnboarding } from "@/lib/launch/storage";
 import {
@@ -30,6 +33,7 @@ import { mapLaunchProducts } from "@/lib/onboarding/map-launch-products";
 import {
   buildPathToGoal,
   formatMoney,
+  pathToGoalParticipants,
   pathToGoalTotal,
 } from "@/lib/onboarding/plan-math";
 import {
@@ -38,13 +42,12 @@ import {
 } from "@/lib/onboarding/storage";
 import { getPlaceholderImageUrl } from "@/lib/unsplash/search-photos";
 
-const GOAL_REACHED_STEPS = [
-  "Funding closes",
-  "Project is confirmed",
-  "Participants receive access based on their offer",
-  "Project begins",
-  "Updates are shared throughout the process",
-];
+function excitingSubtitle(value: string): string {
+  const text = value.trim();
+  if (!text) return "";
+  if (/needed|raise|fund|campaign goal/i.test(text)) return "";
+  return text;
+}
 
 export function GenerateOnboardingScreen() {
   const router = useRouter();
@@ -61,11 +64,7 @@ export function GenerateOnboardingScreen() {
   });
   const [hero, setHero] = useState(() => ({
     title: generated?.heroTitle ?? "Your project",
-    subtitle:
-      generated?.heroSubtitle ??
-      (generated?.goalValue
-        ? `${formatMoney(generated.goalValue)} needed to make it happen`
-        : ""),
+    subtitle: excitingSubtitle(generated?.heroSubtitle ?? ""),
     description: generated?.heroDescription ?? "",
     imageUrl:
       generated?.heroImageUrl ??
@@ -94,11 +93,16 @@ export function GenerateOnboardingScreen() {
     onboardingData.projectCategory,
   ]);
 
+  const joinProducts = useMemo(
+    () => products.filter((product) => !isSponsorProduct(product)),
+    [products],
+  );
   const pathLines = useMemo(
-    () => buildPathToGoal(products, goalValue),
-    [products, goalValue],
+    () => buildPathToGoal(joinProducts, goalValue),
+    [joinProducts, goalValue],
   );
   const pathTotal = pathToGoalTotal(pathLines);
+  const pathParticipants = pathToGoalParticipants(pathLines);
   const milestones = generated?.milestones ?? [];
 
   const handleRetry = useCallback(() => {
@@ -188,23 +192,23 @@ export function GenerateOnboardingScreen() {
       >
         <GradientGlow />
 
-        <div className="relative z-10 mx-auto w-full max-w-[1080px] space-y-8">
+        <div className="relative z-10 mx-auto w-full max-w-[1080px] space-y-8 sm:space-y-10">
           <AiOnboardingMessage
             compact
             stepLabel="PREVIEW · STEP 4 OF 4"
-            headline="Your campaign is ready to launch"
-            supportingText="One idea, turned into a project people can fund and join."
+            headline="Here's how this can happen"
+            supportingText="A project people can join — with a realistic way to make it real."
           />
 
           <section className="overflow-hidden rounded-[2rem] bg-white shadow-meuse-card">
-            <div className="relative h-64 sm:h-80">
+            <div className="relative h-72 sm:h-[28rem]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={hero.imageUrl}
                 alt=""
                 className="h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
               <label className="absolute right-4 bottom-4 cursor-pointer rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-meuse-chip backdrop-blur-sm">
                 Change photo
                 <input
@@ -233,17 +237,18 @@ export function GenerateOnboardingScreen() {
                 }
                 className="w-full bg-transparent text-3xl font-bold tracking-tight text-zinc-900 outline-none sm:text-5xl"
               />
-              <input
-                value={hero.subtitle}
-                onChange={(event) =>
-                  setHero((current) => ({
-                    ...current,
-                    subtitle: event.target.value,
-                  }))
-                }
-                className="mt-3 w-full bg-transparent text-lg font-semibold text-pink-500 outline-none sm:text-xl"
-                placeholder={`${formatMoney(goalValue)} needed to make it happen`}
-              />
+              {hero.subtitle ? (
+                <input
+                  value={hero.subtitle}
+                  onChange={(event) =>
+                    setHero((current) => ({
+                      ...current,
+                      subtitle: event.target.value,
+                    }))
+                  }
+                  className="mt-3 w-full bg-transparent text-lg font-semibold text-pink-500 outline-none sm:text-xl"
+                />
+              ) : null}
               <textarea
                 value={hero.description}
                 onChange={(event) =>
@@ -255,38 +260,39 @@ export function GenerateOnboardingScreen() {
                 rows={3}
                 className="mt-4 w-full resize-none bg-transparent text-base leading-relaxed text-zinc-600 outline-none sm:text-lg"
               />
-              <p className="mt-5 text-sm font-semibold text-zinc-400">
-                {formatMoney(goalValue)} funding target
+              <p className="mt-5 inline-flex rounded-full bg-rose-50 px-3.5 py-1.5 text-sm font-medium text-zinc-600">
+                Estimated project cost{" "}
+                <span className="ml-1.5 font-bold text-zinc-900">
+                  {formatMoney(goalValue)}
+                </span>
               </p>
               <button
                 type="button"
                 onClick={() =>
                   offersRef.current?.scrollIntoView({ behavior: "smooth" })
                 }
-                className="mt-5 inline-flex rounded-full px-6 py-3 text-sm font-bold text-white meuse-gradient-bg shadow-lg shadow-pink-200/40"
+                className="mt-5 flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white meuse-gradient-bg shadow-lg shadow-pink-200/40"
               >
-                See Ways to Join
+                See ways to join
+                <SparkleIcon className="h-4 w-4" />
               </button>
             </div>
           </section>
 
-          <WhatItTakesCard
-            lines={budgetLines}
-            goalType="funding"
-            goalValue={goalValue}
-          />
-
           <div ref={offersRef} className="space-y-4 scroll-mt-16">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
-                Ways to Join
+              <p className="text-[0.625rem] font-bold tracking-[0.16em] text-pink-400">
+                PARTICIPATION
+              </p>
+              <h2 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
+                Ways to join
               </h2>
               <p className="mt-1 text-sm text-zinc-500">
-                Real offers people can buy — from light support to deep involvement.
+                The offers people can buy to become part of this project.
               </p>
             </div>
-            <div className="grid gap-5 sm:grid-cols-2">
-              {products.map((product) => (
+            <div className="space-y-4">
+              {joinProducts.map((product) => (
                 <PreviewOfferCard
                   key={product.id}
                   product={product}
@@ -329,79 +335,50 @@ export function GenerateOnboardingScreen() {
             lines={pathLines}
             goalValue={goalValue}
             total={pathTotal}
+            participants={pathParticipants}
           />
 
-          <section className="rounded-[1.75rem] bg-white px-5 py-6 shadow-meuse-card sm:px-6">
-            <h2 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl">
-              If we reach the goal
-            </h2>
-            <ol className="mt-5 space-y-3">
-              {GOAL_REACHED_STEPS.map((step, index) => (
-                <li key={step} className="flex gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-50 text-sm font-bold text-pink-600">
-                    {index + 1}
-                  </span>
-                  <p className="pt-0.5 text-sm font-medium text-zinc-800">
-                    {step}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </section>
+          <WhatItTakesCard
+            lines={budgetLines}
+            goalType="funding"
+            goalValue={goalValue}
+          />
 
-          {milestones.length > 0 && (
-            <section className="rounded-[1.75rem] bg-white px-5 py-6 shadow-meuse-card sm:px-6">
-              <h2 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl">
-                Project timeline
-              </h2>
-              <p className="mt-1 text-sm text-zinc-500">
-                What happens after the campaign is funded.
-              </p>
-              <ol className="mt-5 space-y-4">
-                {milestones.map((milestone, index) => (
-                  <li key={milestone.title} className="flex gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-zinc-600">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <p className="text-sm font-bold text-zinc-900">
-                        {milestone.title}
-                      </p>
-                      <p className="mt-0.5 text-sm text-zinc-500">
-                        {milestone.description}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </section>
-          )}
+          <ProjectJourneyCard milestones={milestones} />
 
-          <div className="flex flex-col gap-2 pb-2">
+          <section className="overflow-hidden rounded-[2rem] px-6 py-10 text-center shadow-lg shadow-pink-200/40 meuse-gradient-bg sm:px-10 sm:py-14">
+            <p className="text-2xl font-bold text-white sm:text-3xl">
+              Ready to make this happen?
+            </p>
+            <p className="mx-auto mt-2 max-w-md text-sm text-white/85 sm:text-base">
+              Turn this plan into a live project your community can join.
+            </p>
             <button
               type="button"
               onClick={handleCreateLaunch}
-              className="inline-flex w-full items-center justify-center rounded-full px-6 py-3.5 text-sm font-bold text-white meuse-gradient-bg shadow-lg shadow-pink-200/50"
+              className="mt-6 inline-flex w-full max-w-md items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-base font-bold text-pink-600 shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
             >
-              Create Campaign
+              Make This Happen
+              <SparkleIcon className="h-4 w-4 text-pink-500" />
             </button>
             <button
               type="button"
               onClick={() =>
                 offersRef.current?.scrollIntoView({ behavior: "smooth" })
               }
-              className="w-full py-2 text-sm font-semibold text-zinc-500"
+              className="mt-3 w-full py-2 text-sm font-semibold text-white/80"
             >
-              Edit Project
+              Edit offers
             </button>
-            <Link
-              href="/onboarding/participation"
-              className="hidden items-center justify-center gap-1.5 py-2 text-sm font-medium text-zinc-400 sm:inline-flex"
-            >
-              <BackArrowIcon className="h-4 w-4" />
-              Back
-            </Link>
-          </div>
+          </section>
+
+          <Link
+            href="/onboarding/participation"
+            className="hidden items-center justify-center gap-1.5 pb-2 text-sm font-medium text-zinc-400 sm:flex"
+          >
+            <BackArrowIcon className="h-4 w-4" />
+            Back
+          </Link>
         </div>
       </main>
 
@@ -411,7 +388,7 @@ export function GenerateOnboardingScreen() {
 
       <MobileStickyActionBar
         backHref="/onboarding/participation"
-        continueLabel="Create Campaign"
+        continueLabel="Make This Happen"
         onContinueClick={handleCreateLaunch}
         canContinue
       />

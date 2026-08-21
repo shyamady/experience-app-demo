@@ -19,7 +19,6 @@ import { UpdatesPanel } from "@/components/launch/public/UpdatesPanel";
 import { getCampaignGoalType, getCampaignGoalValue } from "@/lib/dashboard/campaign-progress";
 import { getCampaignDisplayStatus } from "@/lib/dashboard/campaign-status";
 import {
-  CAMPAIGN_PHASE_OPTIONS,
   getDefaultCampaignPhase,
   getPhaseOffers,
   type CampaignPhase,
@@ -75,7 +74,6 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
   }, null);
   const budgetLines = data.budgetLines ?? [];
   const hasVideo = Boolean(data.creatorVideoUrl);
-  const phaseLabel = CAMPAIGN_PHASE_OPTIONS.find((option) => option.id === phase)?.label;
 
   useEffect(() => {
     if (compact) {
@@ -158,11 +156,14 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
             <div className="flex items-center gap-3">
               <CampaignPhaseSelector phase={phase} onChange={setPhase} />
               <nav className="hidden items-center gap-4 text-sm text-zinc-500 sm:flex">
+                <Link href="/dashboard/overview" className="hover:text-zinc-800">
+                  Dashboard
+                </Link>
                 <a href="#overview" className="hover:text-zinc-800">
                   Overview
                 </a>
                 <a href="#join" className="hover:text-zinc-800">
-                  Join
+                  Participate
                 </a>
                 {offers.sponsorship.length > 0 && phase !== "during" && phase !== "after" && (
                   <a href="#sponsors" className="hover:text-zinc-800">
@@ -180,10 +181,10 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
 
       {status === "draft" && !compact && (
         <div className="border-b border-amber-100 bg-amber-50 px-4 py-2.5 text-center text-sm text-amber-800">
-          <span className="font-semibold">DRAFT</span>
-          {" — "}This is how your Launch will look when published.{" "}
+          <span className="font-semibold">Draft preview.</span> Only you can
+          see this page.{" "}
           <Link href="/dashboard/overview" className="font-semibold underline">
-            Edit Launch
+            Publish it.
           </Link>
         </div>
       )}
@@ -200,7 +201,13 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
             <LaunchHero
               data={data}
               compact={compact}
-              phaseLabel={phaseLabel}
+              phase={phase}
+              onJoin={scrollToJoin}
+              statusRef={
+                phase === "funding" || phase === "greenlit"
+                  ? progressRef
+                  : undefined
+              }
               onWatchStory={
                 !compact && hasVideo ? replayStory : undefined
               }
@@ -208,25 +215,12 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
           </div>
 
           <div className={compact ? "px-4" : "px-5 sm:px-6"}>
-            <div ref={progressRef} className="mt-8">
-              <CampaignPhaseBanner
-                data={data}
-                phase={phase}
-                onJoin={scrollToJoin}
-              />
-            </div>
-
-            <div className="mt-12">
-              <ProjectStory data={data} />
-            </div>
-
-            {budgetLines.length > 0 && phase !== "after" && (
-              <div className="mt-12">
-                <WhatItTakesCard
-                  lines={budgetLines}
-                  goalType={getCampaignGoalType(data)}
-                  goalValue={getCampaignGoalValue(data)}
-                  variant="public"
+            {phase !== "funding" && phase !== "greenlit" && (
+              <div ref={progressRef} className="mt-8">
+                <CampaignPhaseBanner
+                  data={data}
+                  phase={phase}
+                  onJoin={scrollToJoin}
                 />
               </div>
             )}
@@ -234,7 +228,7 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
             <div
               id="join"
               ref={joinRef}
-              className={compact ? "mt-10 scroll-mt-4" : "mt-12 scroll-mt-16"}
+              className={compact ? "mt-10 scroll-mt-4" : "mt-10 scroll-mt-16 sm:mt-12"}
             >
               <ParticipatePanel
                 offers={offers.participation}
@@ -257,6 +251,21 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
                   />
                 </div>
               )}
+
+            <div className="mt-12">
+              <ProjectStory data={data} />
+            </div>
+
+            {budgetLines.length > 0 && phase !== "after" && (
+              <div className="mt-12">
+                <WhatItTakesCard
+                  lines={budgetLines}
+                  goalType={getCampaignGoalType(data)}
+                  goalValue={getCampaignGoalValue(data)}
+                  variant="public"
+                />
+              </div>
+            )}
 
             <div className="mt-12">
               <ProjectDetails data={data} />

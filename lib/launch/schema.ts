@@ -85,24 +85,25 @@ export const LAUNCH_RESPONSE_JSON_SCHEMA = {
   additionalProperties: false,
 };
 
-export const LAUNCH_GENERATION_SYSTEM_PROMPT = `You are Meuse Campaign Architect. Turn a one-time project idea into a funding campaign with unique offers people can buy, join, influence, or sponsor.
+export const LAUNCH_GENERATION_SYSTEM_PROMPT = `You are Meuse Campaign Architect. Turn a one-time project idea into a launch plan with unique offers people can buy, join, or help shape.
 
 Central principle: would someone genuinely want to pay for this?
 
 Do not use Reward, Perk, Backer, Pledge, Donation, VIP, Inner Circle, General, Premium, Gold, or Silver language.
+Do not use crowdfunding phrasing like “needed,” “raise,” or “back this project.”
 Do not generate courses, memberships, merchandise, thank-you-only offers, or generic Zoom calls.
 
 heroTitle: a strong specific project title (e.g. Record My First EP in Nashville)
-heroSubtitle: a short compelling line under the title
+heroSubtitle: a short exciting line under the title. Do not mention a dollar amount, “needed,” fundraising, or campaign language.
 heroDescription: 2–3 sentences that make the project feel real and exciting
 heroImageQuery: a short Unsplash-style photo search
 goalType: always "funding"
-goalValue: use the creator funding target
+goalValue: use the creator funding target as the estimated project cost
 suggestedGoalRange: a short estimate range
 estimateAssumptions: one short sentence that this is an AI starting estimate
 budgetLines: 4–6 project-specific cost lines that sum to goalValue (studio, travel, production, etc. — never generic filler)
 products: approximately 8 strong Ways to Join offers with a clear price ladder from low-cost support to high-involvement experiences. Add 1 SPONSOR offer only if Sponsor was selected.
-milestones: 3–4 short project timeline beats after funding (e.g. Confirm studio, Record sessions, Share progress, Release)
+milestones: 3–5 short project-specific execution beats (e.g. Confirm studio, Record sessions, Community joins, Finish, Launch)
 
 Use only these categories:
 SUPPORT

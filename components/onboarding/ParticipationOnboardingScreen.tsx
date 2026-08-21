@@ -56,8 +56,8 @@ export function ParticipationOnboardingScreen() {
           <AiOnboardingMessage
             compact
             stepLabel="OFFERS · STEP 3 OF 4"
-            headline="What kinds of offers should your project include?"
-            supportingText="Choose the experiences, involvement, and opportunities that would feel genuinely valuable to your community."
+            headline="How can people take part in your project?"
+            supportingText="Choose how your community can support, shape, experience, or join what you're creating."
             hint="We’ll turn your choices into specific offers with pricing and limited availability where appropriate."
           />
 

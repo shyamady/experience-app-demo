@@ -195,7 +195,7 @@ export function formatDaysLeftCopy(daysLeft: number | null): string | null {
 
 export function getExpectedDateCopy(data: LaunchData): string {
   if (!data.firstDate || data.dateCertainty === "after-goal") {
-    return "Expected after the goal is reached";
+    return "Expected after it’s greenlit";
   }
   if (data.dateCertainty === "target") {
     const parsed = new Date(`${data.firstDate}T00:00:00`);
@@ -206,7 +206,7 @@ export function getExpectedDateCopy(data: LaunchData): string {
     })}`;
   }
   const parsed = new Date(`${data.firstDate}T00:00:00`);
-  if (Number.isNaN(parsed.getTime())) return "Expected after the goal is reached";
+  if (Number.isNaN(parsed.getTime())) return "Expected after it’s greenlit";
   return parsed.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",

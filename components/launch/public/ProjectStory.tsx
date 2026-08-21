@@ -63,13 +63,13 @@ export function ProjectDetails({ data }: { data: LaunchData }) {
     },
   ];
   if (deadline) {
-    rows.push({ label: "Campaign deadline", value: `Join by ${deadline}` });
+    rows.push({ label: "Join by", value: deadline });
   }
   if (setting) rows.push({ label: "Format", value: setting });
   rows.push({ label: "Capacity", value: capacity });
   if (data.demandValidationEnabled && deadline) {
     rows.push({
-      label: "If the goal is not reached",
+      label: "If it isn’t greenlit",
       value: `Participants are refunded according to the Launch terms.`,
     });
   }

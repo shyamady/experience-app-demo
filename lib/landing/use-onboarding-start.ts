@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   buildStarterIdea,
   DEFAULT_PLACEHOLDER,
@@ -9,6 +9,7 @@ import {
   getSuggestion,
   inferStarterContext,
   SUGGESTIONS,
+  type InspirationExample,
   type SuggestionId,
 } from "@/lib/onboarding/suggestions";
 import { getOnboardingData, saveOnboardingData } from "@/lib/onboarding/storage";
@@ -17,6 +18,9 @@ export function useOnboardingStart() {
   const router = useRouter();
   const [inputValue, setInputValue] = useState("");
   const [selectedId, setSelectedId] = useState<SuggestionId | null>(null);
+  const [selectedExampleLabel, setSelectedExampleLabel] = useState<string | null>(
+    null,
+  );
   const [starterValue, setStarterValue] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -27,6 +31,17 @@ export function useOnboardingStart() {
     [selectedId],
   );
 
+  const resizeTextarea = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, []);
+
+  useLayoutEffect(() => {
+    resizeTextarea();
+  }, [inputValue, resizeTextarea]);
+
   const focusInputAtEnd = useCallback((value: string) => {
     requestAnimationFrame(() => {
       const textarea = textareaRef.current;
@@ -34,6 +49,8 @@ export function useOnboardingStart() {
       textarea.focus();
       const length = value.length;
       textarea.setSelectionRange(length, length);
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
     });
   }, []);
 
@@ -68,6 +85,8 @@ export function useOnboardingStart() {
       setSelectedId(id);
     }
 
+    setSelectedExampleLabel(null);
+
     if (!nextStarter) {
       setInputValue("");
       setStarterValue(null);
@@ -90,10 +109,18 @@ export function useOnboardingStart() {
     applyStarter(id);
   }
 
-  function handleExampleSelect(example: string) {
-    setInputValue(example);
-    setStarterValue(null);
-    focusInputAtEnd(example);
+  function handleExampleSelect(example: InspirationExample) {
+    setInputValue(example.prompt);
+    setSelectedExampleLabel(example.label);
+    setStarterValue(example.prompt);
+    focusInputAtEnd(example.prompt);
+  }
+
+  function handleInputChange(value: string) {
+    setInputValue(value);
+    if (selectedExampleLabel && value !== starterValue) {
+      setSelectedExampleLabel(null);
+    }
   }
 
   function handleSubmit() {
@@ -107,8 +134,9 @@ export function useOnboardingStart() {
 
   return {
     inputValue,
-    setInputValue,
+    setInputValue: handleInputChange,
     selectedId,
+    selectedExampleLabel,
     placeholder,
     examples,
     textareaRef,

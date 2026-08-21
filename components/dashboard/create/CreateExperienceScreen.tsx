@@ -43,9 +43,9 @@ export function CreateExperienceScreen() {
     router.push("/onboarding/goal");
   }
 
-  function handleExampleSelect(example: string) {
-    setInputValue(example);
-    focusInputAtEnd(example);
+  function handleExampleSelect(prompt: string) {
+    setInputValue(prompt);
+    focusInputAtEnd(prompt);
   }
 
   function handleSubmit() {
@@ -140,12 +140,12 @@ export function CreateExperienceScreen() {
                 <div className="flex flex-wrap gap-2">
                   {HINT_EXAMPLES.map((example) => (
                     <button
-                      key={example}
+                      key={example.label}
                       type="button"
-                      onClick={() => handleExampleSelect(example)}
+                      onClick={() => handleExampleSelect(example.prompt)}
                       className="rounded-full border border-pink-100/80 bg-white/70 px-3 py-1.5 text-sm text-zinc-500 transition hover:border-pink-200 hover:bg-white hover:text-pink-600"
                     >
-                      {example}
+                      {example.label}
                     </button>
                   ))}
                 </div>

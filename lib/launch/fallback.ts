@@ -303,23 +303,26 @@ function defaultMilestones(kind: ProjectKind): { title: string; description: str
     return [
       { title: "Confirm studio & team", description: "Lock dates, producer, and recording plan." },
       { title: "Record the sessions", description: "Capture the tracks with the community following along." },
-      { title: "Mix, master & share", description: "Finish the work and share progress with participants." },
+      { title: "Community listens in", description: "Share demos and keep participants close to the process." },
+      { title: "Finish the mix", description: "Mix, master, and get the project ready." },
       { title: "Release", description: "Bring the finished project into the world." },
     ];
   }
   if (kind === "trip") {
     return [
       { title: "Confirm dates & lodging", description: "Lock travel details and the group size." },
-      { title: "Finalize the itinerary", description: "Shape the days with participant input." },
+      { title: "Shape the itinerary", description: "Plan the days with participant input." },
+      { title: "Community packs in", description: "The group gets ready and locked in together." },
       { title: "Travel together", description: "Make the journey happen." },
       { title: "Share the recap", description: "Send the story back to everyone who joined." },
     ];
   }
   return [
     { title: "Confirm the plan", description: "Lock venue, dates, and key collaborators." },
-    { title: "Produce the experience", description: "Build the project with participants involved." },
-    { title: "Share progress", description: "Keep joiners close with updates throughout." },
-    { title: "Make it public", description: "Deliver the final experience or release." },
+    { title: "Create the experience", description: "Build the project with participants involved." },
+    { title: "Community joins", description: "People take part and help shape what happens next." },
+    { title: "Finish & share", description: "Bring the work together and keep joiners close." },
+    { title: "Launch", description: "Make it public and celebrate together." },
   ];
 }
 
@@ -334,16 +337,11 @@ export function buildFallbackLaunch(
   const fundingNeed = goal.value;
   const products = catalogFor(kind, offerKinds, fundingNeed);
   const budgetLines = budgetFor(kind, fundingNeed);
-  const money = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(fundingNeed);
 
   return {
     heroTitle: title,
-    heroSubtitle: `${money} needed to make it happen`,
-    heroDescription: `Bring the community inside the making of this project—from early decisions and private updates to the moments that make it real. Your participation helps fund what it takes to finish.`,
+    heroSubtitle: "A project your community can help make real",
+    heroDescription: `Bring the community inside the making of this project—from early decisions and private updates to the moments that make it real.`,
     heroImageQuery: idea,
     heroImageUrl: EXPERIENCE_IMAGES.stage,
     goalType: "funding",

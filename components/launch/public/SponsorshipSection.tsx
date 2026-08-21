@@ -17,10 +17,10 @@ export function SponsorshipSection({
   return (
     <section>
       <h2 className="text-2xl font-bold tracking-tight text-zinc-900">
-        Help bring this project to life
+        Sponsor opportunities
       </h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Partner with the creator as a brand, venue, or production supporter.
+        Brands and partners who want to help bring this to life.
       </p>
 
       <div className="mt-5 space-y-5">

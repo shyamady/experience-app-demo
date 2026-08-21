@@ -27,58 +27,46 @@ export type ParticipationOption = {
 export const PARTICIPATION_OPTIONS: ParticipationOption[] = [
   {
     id: "support",
-    title: "Support the Project",
+    title: "Back the Project",
     description:
-      "Let people help make the idea possible and become part of its story.",
-    examples: "Credits · founding status · first look",
+      "Help bring the idea to life and be recognized as an early supporter.",
+    examples: "Founding supporter · credits · early access",
     icon: "heart",
   },
   {
     id: "behind-scenes",
     title: "Go Behind the Scenes",
-    description:
-      "Give people a closer look at the parts of the project they normally wouldn’t see.",
-    examples: "Demos · diaries · private previews",
+    description: "Get closer access to the project as it comes together.",
+    examples: "Private updates · behind-the-scenes · early previews",
     icon: "eye",
   },
   {
     id: "influence",
     title: "Help Shape It",
-    description:
-      "Let participants influence real decisions in the project.",
-    examples: "Votes · feedback · private reviews",
+    description: "Influence real decisions in the project.",
+    examples: "Votes · feedback · help choose",
     icon: "gamepad",
   },
   {
     id: "participate",
-    title: "Take Part",
-    description:
-      "Give people a real role or activity inside the project.",
-    examples: "Workshops · sessions · challenges",
+    title: "Join an Activity",
+    description: "Do something together as part of the project.",
+    examples: "Workshops · challenges · group sessions",
     icon: "sparkle",
   },
   {
     id: "in-person",
-    title: "Join In Person",
-    description: "Bring people into the real-world experience.",
-    examples: "Events · dinners · studio visits",
+    title: "Join in Person",
+    description: "Be there for the real-world experience.",
+    examples: "Events · trips · dinners · backstage",
     icon: "users",
   },
   {
     id: "work-with-me",
     title: "Work With Me",
-    description:
-      "Create a high-value opportunity for people to collaborate directly with you.",
+    description: "Collaborate or work directly with the creator.",
     examples: "Coaching · reviews · private sessions",
     icon: "chat",
-  },
-  {
-    id: "sponsor",
-    title: "Bring in a Sponsor",
-    description:
-      "Let a brand help fund the project in exchange for meaningful visibility or involvement.",
-    examples: "Partnerships · integrations · presenting sponsor",
-    icon: "star",
   },
 ];
 

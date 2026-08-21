@@ -144,6 +144,10 @@ export function pathToGoalTotal(lines: PathToGoalLine[]): number {
   return lines.reduce((sum, line) => sum + line.subtotal, 0);
 }
 
+export function pathToGoalParticipants(lines: PathToGoalLine[]): number {
+  return lines.reduce((sum, line) => sum + line.quantity, 0);
+}
+
 export function closeCoverageGap(
   products: ExperienceProduct[],
   goalType: GoalType,

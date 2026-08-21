@@ -23,6 +23,7 @@ export function OnboardingHero({
     inputValue,
     setInputValue,
     selectedId,
+    selectedExampleLabel,
     placeholder,
     examples,
     textareaRef,
@@ -156,14 +157,15 @@ export function OnboardingHero({
             style={{ animationDelay: "0.28s" }}
           >
             <p className="mb-3 text-center text-xs font-medium text-zinc-400">
-              Need inspiration?
+              Not sure yet? Start with one of these
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               {examples.map((example) => (
                 <ExamplePrompt
-                  key={example}
-                  text={example}
-                  onSelect={handleExampleSelect}
+                  key={example.label}
+                  text={example.label}
+                  selected={selectedExampleLabel === example.label}
+                  onSelect={() => handleExampleSelect(example)}
                 />
               ))}
             </div>

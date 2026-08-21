@@ -14,10 +14,10 @@ export function AiHintCard() {
           <ul className="mt-2 space-y-1">
             {HINT_EXAMPLES.map((example) => (
               <li
-                key={example}
+                key={example.label}
                 className="text-sm leading-relaxed text-zinc-500"
               >
-                {example}
+                {example.label}
               </li>
             ))}
           </ul>

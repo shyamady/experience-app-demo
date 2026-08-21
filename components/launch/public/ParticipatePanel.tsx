@@ -21,10 +21,10 @@ export function ParticipatePanel({
   return (
     <section>
       <h2 className="text-2xl font-bold tracking-tight text-zinc-900">
-        Ways to Join
+        Ways to participate
       </h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Different ways people can become part of this project.
+        Choose how you want to be part of this project.
       </p>
 
       <div className="mt-5 space-y-5">

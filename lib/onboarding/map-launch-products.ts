@@ -24,20 +24,29 @@ function normalizeCategory(category: string): ExperienceCategory {
   const exact = PRODUCT_CATEGORIES.find((value) => value === normalized);
   if (exact) return exact;
 
-  if (normalized.includes("FOLLOW")) return "FOLLOW THE JOURNEY";
-  if (normalized.includes("SHAPE")) return "SHAPE IT";
-  if (normalized.includes("CONTRIBUTE")) return "CONTRIBUTE";
-  if (normalized.includes("CO-CREATE") || normalized.includes("COCREATE")) {
-    return "CO-CREATE";
+  if (normalized.includes("BEHIND")) return "BEHIND THE SCENES";
+  if (normalized.includes("WORK WITH") || normalized.includes("WORK-WITH")) {
+    return "WORK WITH ME";
   }
+  if (normalized.includes("HELP SHAPE") || normalized.includes("SHAPE")) {
+    return "HELP SHAPE IT";
+  }
+  if (normalized.includes("TAKE PART") || normalized.includes("CO-CREATE")) {
+    return "TAKE PART";
+  }
+  if (normalized.includes("IN PERSON") || normalized.includes("JOIN IN")) {
+    return "JOIN IN PERSON";
+  }
+  if (normalized.includes("SUPPORT")) return "SUPPORT";
+  if (normalized.includes("FOLLOW")) return "BEHIND THE SCENES";
+  if (normalized.includes("CONTRIBUTE")) return "TAKE PART";
   if (normalized.includes("PARTNER") || normalized.includes("PRESENTING")) {
-    return "PARTNER";
+    return "SPONSOR";
   }
-  if (normalized.includes("JOIN")) return "JOIN";
   if (normalized.includes("SPONSOR")) return "SPONSOR";
+  if (normalized.includes("JOIN")) return "JOIN IN PERSON";
   if (normalized.includes("MULTI")) return "MULTI-DAY";
-  if (normalized.includes("PERSON")) return "IN PERSON";
-  if (normalized.includes("SUPPORT")) return "SUPPORTER";
+  if (normalized.includes("PERSON")) return "JOIN IN PERSON";
   if (normalized.includes("GIFT")) return "ONLINE + GIFT";
   if (normalized.includes("Q&A") || normalized.includes("QA")) {
     return "ONLINE Q&A";
@@ -45,7 +54,7 @@ function normalizeCategory(category: string): ExperienceCategory {
   if (normalized.includes("LIVE")) return "LIVE ONLINE";
   if (normalized.includes("INTERACT")) return "INTERACTIVE";
 
-  return "JOIN";
+  return "SUPPORT";
 }
 
 function isProductCategory(value: string): value is ProductCategory {

@@ -82,7 +82,7 @@ export function AddExperiencePanel({
   return (
     <div className="rounded-meuse border-2 border-dashed border-pink-200 bg-meuse-hint p-4 sm:p-5">
       <h3 className="text-sm font-semibold text-zinc-900">
-        Add another participation style
+        Add another offer
       </h3>
 
       <div className="mt-3 flex flex-wrap gap-2">
@@ -120,14 +120,14 @@ export function AddExperiencePanel({
         <textarea
           value={howItHelps}
           onChange={(event) => setHowItHelps(event.target.value)}
-          placeholder="How their participation helps"
+          placeholder="How this offer helps"
           rows={2}
           className={`${fieldClassName} resize-none`}
         />
         <textarea
           value={access}
           onChange={(event) => setAccess(event.target.value)}
-          placeholder="Access or involvement they receive"
+          placeholder="What they get"
           rows={2}
           className={`${fieldClassName} resize-none`}
         />
@@ -168,7 +168,7 @@ export function AddExperiencePanel({
           onClick={handleAdd}
           className="rounded-full px-5 py-2 text-sm font-semibold text-white meuse-gradient-bg"
         >
-          Add participation style
+          Add offer
         </button>
         <button
           type="button"

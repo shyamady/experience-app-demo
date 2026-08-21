@@ -4,6 +4,7 @@ import type {
   LaunchProduct,
   LaunchResponse,
 } from "@/types/launch";
+import type { ProductCategory } from "@/lib/launch/categories";
 import {
   EXPERIENCE_IMAGES,
   EXPERIENCE_TEMPLATES,
@@ -12,9 +13,28 @@ import {
   TRIP_IMAGE_KEYS,
   type ExperienceImageKey,
 } from "@/lib/onboarding/experiences";
-import { RECOMMENDED_FUNDING, RECOMMENDED_PEOPLE } from "@/lib/onboarding/goal";
+import { RECOMMENDED_FUNDING } from "@/lib/onboarding/goal";
 
 type ProjectKind = "trip" | "music" | "fitness" | "popup" | "show";
+
+type OfferKind =
+  | "support"
+  | "behind-scenes"
+  | "influence"
+  | "participate"
+  | "in-person"
+  | "work-with-me"
+  | "sponsor";
+
+const KIND_TO_CATEGORY: Record<OfferKind, ProductCategory> = {
+  support: "SUPPORT",
+  "behind-scenes": "BEHIND THE SCENES",
+  influence: "HELP SHAPE IT",
+  participate: "TAKE PART",
+  "in-person": "JOIN IN PERSON",
+  "work-with-me": "WORK WITH ME",
+  sponsor: "SPONSOR",
+};
 
 function titleFromIdea(activity: string, category?: string): string {
   const cleaned = activity
@@ -30,43 +50,72 @@ function titleFromIdea(activity: string, category?: string): string {
 }
 
 function resolvedGoal(body: GenerateLaunchRequest): {
-  type: "people" | "funding";
+  type: "funding";
   value: number;
 } {
-  const type = body.goalType === "people" ? "people" : "funding";
   if (body.goalUnsure || !body.goalValue) {
-    return {
-      type,
-      value: type === "people" ? RECOMMENDED_PEOPLE : RECOMMENDED_FUNDING,
-    };
+    return { type: "funding", value: RECOMMENDED_FUNDING };
   }
-  return { type, value: body.goalValue };
+  return { type: "funding", value: body.goalValue };
 }
 
 function inferKind(activity: string, category?: string): ProjectKind {
   const haystack = `${activity} ${category ?? ""}`.toLowerCase();
-  if (/trip|travel|japan|retreat|tour|adventure|somewhere/.test(haystack)) return "trip";
+  if (/trip|travel|japan|retreat|tour|adventure|somewhere/.test(haystack)) {
+    return "trip";
+  }
   if (/album|record|ep|studio|mix|film|music/.test(haystack)) return "music";
   if (/fitness|workout|train|yoga|run/.test(haystack)) return "fitness";
   if (/pop-?up|market|shop|exhibition/.test(haystack)) return "popup";
   return "show";
 }
 
+function selectedOfferKinds(participation: string[]): OfferKind[] {
+  const map: Record<string, OfferKind> = {
+    support: "support",
+    "behind-scenes": "behind-scenes",
+    influence: "influence",
+    participate: "participate",
+    "in-person": "in-person",
+    "work-with-me": "work-with-me",
+    sponsor: "sponsor",
+    // legacy
+    follow: "behind-scenes",
+    shape: "influence",
+    contribute: "participate",
+    "co-create": "participate",
+    join: "in-person",
+    partner: "sponsor",
+  };
+
+  const kinds = participation
+    .map((item) => map[item.toLowerCase()] ?? map[item])
+    .filter((item): item is OfferKind => Boolean(item));
+
+  const unique = [...new Set(kinds)];
+  if (unique.length === 0) {
+    return ["support", "behind-scenes", "influence", "in-person"];
+  }
+  return unique;
+}
+
 function imageFor(keys: readonly ExperienceImageKey[], index: number): string {
   return EXPERIENCE_IMAGES[keys[index % keys.length]];
 }
 
-function withOffer(
-  templateIndex: number,
+function makeOffer(
+  kind: OfferKind,
   title: string,
   description: string,
   price: number,
   spots: number,
   imageUrl: string,
 ): LaunchProduct {
-  const template = EXPERIENCE_TEMPLATES[templateIndex] ?? EXPERIENCE_TEMPLATES[3];
+  const template =
+    EXPERIENCE_TEMPLATES.find((item) => item.id === kind) ??
+    EXPERIENCE_TEMPLATES[0];
   return {
-    category: template.category,
+    category: KIND_TO_CATEGORY[kind],
     title,
     description,
     howItHelps: template.howItHelps,
@@ -100,7 +149,7 @@ export function budgetLinesForProject(
   category: string | undefined,
   total: number,
 ): BudgetLine[] {
-  return budgetFor(inferKind(activity, category), Math.max(1000, total));
+  return budgetFor(inferKind(activity, category), Math.max(500, total));
 }
 
 function budgetFor(kind: ProjectKind, total: number): BudgetLine[] {
@@ -120,12 +169,11 @@ function budgetFor(kind: ProjectKind, total: number): BudgetLine[] {
   if (kind === "music") {
     return scaleBudget(
       [
-        { label: "Studio", description: "Recording time and space." },
-        { label: "Musicians", description: "Players who help finish the work." },
-        { label: "Mixing / mastering", description: "The final listen-ready version." },
-        { label: "Artwork", description: "Cover and visual identity." },
-        { label: "Distribution", description: "Getting the release out." },
-        { label: "Promotion", description: "Telling the right people it exists." },
+        { label: "Studio rental", description: "Recording time and space." },
+        { label: "Producer / engineer", description: "The people who help capture and shape the tracks." },
+        { label: "Travel & accommodation", description: "Getting to the sessions and staying there." },
+        { label: "Mixing & mastering", description: "The final listen-ready version." },
+        { label: "Artwork / release costs", description: "Cover art and getting the release out." },
       ],
       total,
     );
@@ -164,16 +212,14 @@ function budgetFor(kind: ProjectKind, total: number): BudgetLine[] {
       { label: "Travel & Hospitality", description: "Getting people there and looking after them." },
       { label: "Marketing & Content", description: "Assets, photo, video, and promotion." },
       { label: "Contingency", description: "Room for unexpected costs." },
-      { label: "Creator / Project Margin", description: "Optional project compensation and buffer." },
     ],
     total,
   );
 }
 
-function offersFor(
+function catalogFor(
   kind: ProjectKind,
-  peopleGoal: number,
-  includePartner: boolean,
+  offerKinds: OfferKind[],
   fundingGoal: number,
 ): LaunchProduct[] {
   const keys =
@@ -181,83 +227,100 @@ function offersFor(
       ? TRIP_IMAGE_KEYS
       : kind === "fitness"
         ? FITNESS_IMAGE_KEYS
-        : kind === "popup"
-          ? (["venue", "group", "dinner", "gift", "premium", "crowd"] as const)
-          : PARTICIPATION_IMAGE_KEYS;
-  const follow = Math.max(40, peopleGoal);
-  const show = Math.max(20, Math.round(peopleGoal * 0.7));
-  const enhanced = Math.max(12, Math.round(peopleGoal * 0.35));
-  const small = Math.max(8, Math.round(peopleGoal * 0.2));
-  const premium = Math.max(6, Math.round(peopleGoal * 0.12));
-  const special = Math.max(4, Math.round(peopleGoal * 0.08));
+        : PARTICIPATION_IMAGE_KEYS;
 
-  const catalog: LaunchProduct[] =
-    kind === "trip"
+  const ladder: LaunchProduct[] =
+    kind === "music"
       ? [
-          withOffer(4, "Travel Notes", "Follow planning, packing lists, and behind-the-scenes as the trip comes together.", 25, follow, imageFor(keys, 0)),
-          withOffer(3, "Trip Seat", "A place in the traveling group for the full experience.", 90, show, imageFor(keys, 1)),
-          withOffer(2, "Route Circle", "Help choose days, stops, and the shape of the itinerary.", 160, enhanced, imageFor(keys, 2)),
-          withOffer(0, "Scout Night", "Join a smaller planning hang before departure.", 280, small, imageFor(keys, 3)),
-          withOffer(3, "First Table", "A limited dinner with the crew on arrival night.", 450, premium, imageFor(keys, 4)),
-          withOffer(2, "Core Crew", "Stay closest to logistics and daily decisions on the ground.", 650, special, imageFor(keys, 5)),
+          makeOffer("support", "Studio Supporter", "Help make the recording possible and follow private progress updates.", 25, 80, imageFor(keys, 0)),
+          makeOffer("behind-scenes", "Demo Access", "Hear early demos before they are released publicly.", 50, 50, imageFor(keys, 1)),
+          makeOffer("influence", "Track Vote", "Vote on selected songs, artwork, or creative decisions.", 75, 30, imageFor(keys, 2)),
+          makeOffer("behind-scenes", "Inside the Studio", "Receive private studio diaries, rough cuts, and behind-the-scenes updates.", 125, 25, imageFor(keys, 3)),
+          makeOffer("participate", "Private Listening Room", "Join a live virtual listening session and discuss the project directly.", 200, 15, imageFor(keys, 4)),
+          makeOffer("influence", "Creative Circle", "Give feedback on unreleased tracks and influence selected decisions.", 350, 10, imageFor(keys, 5)),
+          makeOffer("in-person", "Studio Guest", "Join part of an in-person recording session.", 750, 4, imageFor(keys, 0)),
+          makeOffer("work-with-me", "Executive Supporter", "Highest-access participation with a private session and recognition where appropriate.", 1500, 3, imageFor(keys, 1)),
         ]
-      : kind === "music"
+      : kind === "trip"
         ? [
-            withOffer(4, "Studio Listener", "Get private updates, demos, and the story as the record is made.", 25, follow, imageFor(keys, 0)),
-            withOffer(3, "Session Pass", "Be in the room for a listening or tracking session.", 75, show, imageFor(keys, 1)),
-            withOffer(2, "Setlist Session", "Help choose songs, sequence, and the feeling of the work.", 150, enhanced, imageFor(keys, 2)),
-            withOffer(0, "Soundcheck Seat", "A small-group rehearsal or playback before anything is public.", 250, small, imageFor(keys, 3)),
-            withOffer(3, "Control Room Night", "Sit in for mix notes with the creator.", 400, premium, imageFor(keys, 4)),
-            withOffer(1, "Liner Note", "Contribute a story, vocal, or idea considered for the release.", 60, Math.max(15, small), imageFor(keys, 5)),
+            makeOffer("support", "Journey Supporter", "Help make the trip possible and get founding credit in the recap.", 25, 80, imageFor(keys, 0)),
+            makeOffer("behind-scenes", "Travel Notes", "Private packing lists, route peeks, and unreleased trip moments.", 50, 50, imageFor(keys, 1)),
+            makeOffer("influence", "Route Vote", "Help choose stops, days, and the shape of the itinerary.", 75, 25, imageFor(keys, 2)),
+            makeOffer("behind-scenes", "On the Road Diary", "Receive private updates and photo drops from the journey.", 125, 20, imageFor(keys, 3)),
+            makeOffer("participate", "Scout Night", "Join a planning hang before departure and help lock logistics.", 200, 12, imageFor(keys, 4)),
+            makeOffer("work-with-me", "Creator Walk", "A private half-day with the creator focused on your own creative trip idea.", 350, 6, imageFor(keys, 5)),
+            makeOffer("in-person", "Trip Seat", "A place in the traveling group for the full experience.", 750, 10, imageFor(keys, 0)),
+            makeOffer("in-person", "Core Crew", "Stay closest to logistics and daily decisions on the ground.", 1500, 4, imageFor(keys, 1)),
           ]
         : kind === "fitness"
           ? [
-              withOffer(4, "Training Log", "Follow the build-up with private updates and prep notes.", 20, follow, imageFor(keys, 0)),
-              withOffer(3, "Floor Pass", "Join the main session with the group.", 55, show, imageFor(keys, 1)),
-              withOffer(2, "Form Lab", "A smaller coaching block before the main session.", 120, enhanced, imageFor(keys, 2)),
-              withOffer(0, "First 12", "Limited early access with the creator.", 200, small, imageFor(keys, 3)),
-              withOffer(3, "Recovery Table", "Stay after for food, notes, and recovery.", 320, premium, imageFor(keys, 4)),
+              makeOffer("support", "Founding Athlete", "Help launch the series and get founding credit in the community.", 25, 80, imageFor(keys, 0)),
+              makeOffer("behind-scenes", "Training Log", "Private prep notes, form tips, and behind-the-scenes training clips.", 50, 50, imageFor(keys, 1)),
+              makeOffer("influence", "Program Vote", "Help choose session focus, intensity, and recovery blocks.", 75, 30, imageFor(keys, 2)),
+              makeOffer("participate", "Form Lab", "A smaller coaching block before the main session.", 125, 15, imageFor(keys, 3)),
+              makeOffer("behind-scenes", "Recovery Circle", "Private recovery notes and post-session breakdowns.", 200, 12, imageFor(keys, 4)),
+              makeOffer("work-with-me", "Private Form Review", "Send a training clip and get personalized coaching notes.", 350, 8, imageFor(keys, 5)),
+              makeOffer("in-person", "Floor Pass", "Join the main in-person training experience.", 250, 30, imageFor(keys, 0)),
+              makeOffer("in-person", "First Circle", "Limited early access with the creator before doors open.", 750, 6, imageFor(keys, 1)),
             ]
-          : kind === "popup"
-            ? [
-                withOffer(4, "First Look Pass", "Follow the build and get first access when doors open.", 20, follow, imageFor(keys, 0)),
-                withOffer(3, "Opening Night Ticket", "Be there for the pop-up while it is live.", 55, show, imageFor(keys, 1)),
-                withOffer(2, "Maker Table", "A smaller session helping shape the look and layout.", 140, enhanced, imageFor(keys, 2)),
-                withOffer(0, "Install Crew", "Help set the space the day before opening.", 220, small, imageFor(keys, 3)),
-                withOffer(3, "Host Circle", "A limited dinner with the creator after close.", 400, premium, imageFor(keys, 4)),
-                withOffer(1, "Neighborhood Seat", "Bring a friend and stay close to the making of it.", 90, Math.max(15, small), imageFor(keys, 5)),
-              ]
-            : [
-              withOffer(4, "Journey Member", "Private updates, peeks, and the making-of as the night takes shape.", 25, follow, imageFor(keys, 0)),
-              withOffer(3, "Opening Night Circle", "Be in the room for the final experience.", 75, show, imageFor(keys, 1)),
-              withOffer(2, "Setlist Session", "Help choose songs, sequence, and the feeling of the night.", 150, enhanced, imageFor(keys, 2)),
-              withOffer(0, "Soundcheck Seat", "A limited rehearsal hang before doors.", 250, small, imageFor(keys, 3)),
-              withOffer(3, "Backstage Dinner", "A small meal and conversation with the creator.", 500, premium, imageFor(keys, 4)),
-              withOffer(1, "Founding Guest", "Vote on a few key decisions before the night is locked.", 45, Math.max(20, small), imageFor(keys, 6)),
+          : [
+              makeOffer("support", "Project Supporter", "Help make the night possible and follow private progress updates.", 25, 80, imageFor(keys, 0)),
+              makeOffer("behind-scenes", "Early Peek", "See rehearsals and creative drafts before the public version.", 50, 50, imageFor(keys, 1)),
+              makeOffer("influence", "Decision Seat", "Vote on selected creative choices that shape the final experience.", 75, 30, imageFor(keys, 2)),
+              makeOffer("behind-scenes", "Inside the Sessions", "Private diaries, rough cuts, and behind-the-scenes updates.", 125, 25, imageFor(keys, 3)),
+              makeOffer("participate", "Working Session", "Join a hands-on workshop or creative session inside the project.", 200, 15, imageFor(keys, 4)),
+              makeOffer("influence", "Creative Circle", "Give structured feedback and influence a few key decisions.", 350, 10, imageFor(keys, 5)),
+              makeOffer("in-person", "Opening Night Seat", "Be in the room for the final experience.", 250, 40, imageFor(keys, 0)),
+              makeOffer("work-with-me", "Private Creative Review", "Bring one project and get focused feedback on direction and next steps.", 750, 6, imageFor(keys, 1)),
             ];
 
-  const partners: LaunchProduct[] = includePartner
-    ? [
-        withOffer(
-          5,
-          kind === "trip" ? "Travel Partner" : kind === "music" ? "Sound Partner" : "Presenting Partner",
-          "Help cover a major production cost and be recognized as a partner making the project possible.",
-          Math.max(1500, Math.round((fundingGoal * 0.2) / 100) * 100),
-          1,
-          EXPERIENCE_IMAGES.sponsor,
-        ),
-        withOffer(
-          5,
-          "Community Partner",
-          "Support a slice of the project with funding, space, or in-kind help.",
-          Math.max(800, Math.round((fundingGoal * 0.08) / 100) * 100),
-          2,
-          EXPERIENCE_IMAGES.venue,
-        ),
-      ]
-    : [];
+  const products = [...ladder];
 
-  return [...catalog, ...partners];
+  if (offerKinds.includes("sponsor")) {
+    products.push(
+      makeOffer(
+        "sponsor",
+        kind === "music"
+          ? "Studio Partner"
+          : kind === "trip"
+            ? "Journey Partner"
+            : kind === "fitness"
+              ? "Training Partner"
+              : "Presenting Partner",
+        "Help fund the project with integrated creator content, brand mention, and official partner status.",
+        Math.max(1500, Math.round((fundingGoal * 0.5) / 100) * 100),
+        1,
+        EXPERIENCE_IMAGES.sponsor,
+      ),
+    );
+  }
+
+  return products;
+}
+
+function defaultMilestones(kind: ProjectKind): { title: string; description: string }[] {
+  if (kind === "music") {
+    return [
+      { title: "Confirm studio & team", description: "Lock dates, producer, and recording plan." },
+      { title: "Record the sessions", description: "Capture the tracks with the community following along." },
+      { title: "Mix, master & share", description: "Finish the work and share progress with participants." },
+      { title: "Release", description: "Bring the finished project into the world." },
+    ];
+  }
+  if (kind === "trip") {
+    return [
+      { title: "Confirm dates & lodging", description: "Lock travel details and the group size." },
+      { title: "Finalize the itinerary", description: "Shape the days with participant input." },
+      { title: "Travel together", description: "Make the journey happen." },
+      { title: "Share the recap", description: "Send the story back to everyone who joined." },
+    ];
+  }
+  return [
+    { title: "Confirm the plan", description: "Lock venue, dates, and key collaborators." },
+    { title: "Produce the experience", description: "Build the project with participants involved." },
+    { title: "Share progress", description: "Keep joiners close with updates throughout." },
+    { title: "Make it public", description: "Deliver the final experience or release." },
+  ];
 }
 
 export function buildFallbackLaunch(
@@ -265,37 +328,31 @@ export function buildFallbackLaunch(
 ): LaunchResponse {
   const idea = body.activity.trim() || "a project with my community";
   const title = titleFromIdea(idea, body.category);
-  const goal = resolvedGoal(body);
+  const goal = resolvedGoal({ ...body, goalType: "funding" });
   const kind = inferKind(idea, body.category);
-  const includePartner = body.participation.some((item) => /partner/i.test(item));
-  const fundingNeed = goal.type === "funding" ? goal.value : Math.max(8000, goal.value * 120);
-  const peopleNeed = goal.type === "people" ? goal.value : 60;
-  const products = offersFor(kind, peopleNeed, includePartner, fundingNeed);
+  const offerKinds = selectedOfferKinds(body.participation);
+  const fundingNeed = goal.value;
+  const products = catalogFor(kind, offerKinds, fundingNeed);
   const budgetLines = budgetFor(kind, fundingNeed);
+  const money = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(fundingNeed);
 
   return {
     heroTitle: title,
-    heroDescription: `Bring this to life with your community — ${
-      goal.type === "people"
-        ? `${goal.value} people making it happen`
-        : `${new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-            maximumFractionDigits: 0,
-          }).format(goal.value)} to make it possible`
-    }.`,
+    heroSubtitle: `${money} needed to make it happen`,
+    heroDescription: `Bring the community inside the making of this project—from early decisions and private updates to the moments that make it real. Your participation helps fund what it takes to finish.`,
     heroImageQuery: idea,
     heroImageUrl: EXPERIENCE_IMAGES.stage,
-    goalType: goal.type,
-    goalValue: goal.value,
-    suggestedGoalRange:
-      goal.type === "people"
-        ? `${Math.round(goal.value * 0.8)}–${Math.round(goal.value * 1.2)} people`
-        : `$${Math.round(goal.value * 0.8).toLocaleString()}–$${Math.round(goal.value * 1.2).toLocaleString()}`,
-    estimateAssumptions:
-      "AI starting estimate. You can edit this later.",
+    goalType: "funding",
+    goalValue: fundingNeed,
+    suggestedGoalRange: `$${Math.round(fundingNeed * 0.8).toLocaleString()}–$${Math.round(fundingNeed * 1.2).toLocaleString()}`,
+    estimateAssumptions: "AI starting estimate. You can edit this later.",
     products,
     budgetLines,
     gapSuggestions: [],
+    milestones: defaultMilestones(kind),
   };
 }

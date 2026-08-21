@@ -4,9 +4,10 @@ export const LAUNCH_RESPONSE_JSON_SCHEMA = {
   type: "object",
   properties: {
     heroTitle: { type: "string" },
+    heroSubtitle: { type: "string" },
     heroDescription: { type: "string" },
     heroImageQuery: { type: "string" },
-    goalType: { type: "string", enum: ["people", "funding"] },
+    goalType: { type: "string", enum: ["funding"] },
     goalValue: { type: "number" },
     suggestedGoalRange: { type: "string" },
     estimateAssumptions: { type: "string" },
@@ -27,7 +28,7 @@ export const LAUNCH_RESPONSE_JSON_SCHEMA = {
     },
     products: {
       type: "array",
-      minItems: 5,
+      minItems: 7,
       maxItems: 10,
       items: {
         type: "object",
@@ -53,9 +54,24 @@ export const LAUNCH_RESPONSE_JSON_SCHEMA = {
         additionalProperties: false,
       },
     },
+    milestones: {
+      type: "array",
+      minItems: 3,
+      maxItems: 5,
+      items: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          description: { type: "string" },
+        },
+        required: ["title", "description"],
+        additionalProperties: false,
+      },
+    },
   },
   required: [
     "heroTitle",
+    "heroSubtitle",
     "heroDescription",
     "heroImageQuery",
     "goalType",
@@ -64,39 +80,45 @@ export const LAUNCH_RESPONSE_JSON_SCHEMA = {
     "estimateAssumptions",
     "budgetLines",
     "products",
+    "milestones",
   ],
   additionalProperties: false,
 };
 
-export const LAUNCH_GENERATION_SYSTEM_PROMPT = `You are Meuse Launch Architect. Turn a one-time project idea into something the creator can launch and sell.
+export const LAUNCH_GENERATION_SYSTEM_PROMPT = `You are Meuse Campaign Architect. Turn a one-time project idea into a funding campaign with unique offers people can buy, join, influence, or sponsor.
 
-Do not generate project milestones, weeks, production timelines, or task lists.
-Do not generate courses, memberships, weekly sessions, Bronze/Silver/Gold, merchandise, or generic VIP/Inner Circle/General/Premium names unless they truly fit this project.
+Central principle: would someone genuinely want to pay for this?
 
-heroTitle: a short specific project title
-heroDescription: ONE sentence describing the idea and the goal
+Do not use Reward, Perk, Backer, Pledge, Donation, VIP, Inner Circle, General, Premium, Gold, or Silver language.
+Do not generate courses, memberships, merchandise, thank-you-only offers, or generic Zoom calls.
+
+heroTitle: a strong specific project title (e.g. Record My First EP in Nashville)
+heroSubtitle: a short compelling line under the title
+heroDescription: 2–3 sentences that make the project feel real and exciting
 heroImageQuery: a short Unsplash-style photo search
+goalType: always "funding"
+goalValue: use the creator funding target
 suggestedGoalRange: a short estimate range
-estimateAssumptions: one short sentence that this is an AI starting estimate, not a guarantee
-budgetLines: 4–8 resource/cost categories that this kind of project actually needs. Sum should be close to the funding need (use goalValue if funding, or a realistic cost if people). Categories must match the project type (trip vs show vs album vs pop-up vs fitness). Each description is one short sentence.
-products: 5–7 participation offers PLUS 1–3 PARTNER offers only if Partner was selected
+estimateAssumptions: one short sentence that this is an AI starting estimate
+budgetLines: 4–6 project-specific cost lines that sum to goalValue (studio, travel, production, etc. — never generic filler)
+products: approximately 8 strong Ways to Join offers with a clear price ladder from low-cost support to high-involvement experiences. Add 1 SPONSOR offer only if Sponsor was selected.
+milestones: 3–4 short project timeline beats after funding (e.g. Confirm studio, Record sessions, Share progress, Release)
 
 Use only these categories:
-SHAPE IT
-CONTRIBUTE
-CO-CREATE
-JOIN
-FOLLOW THE JOURNEY
-PARTNER
+SUPPORT
+BEHIND THE SCENES
+HELP SHAPE IT
+TAKE PART
+JOIN IN PERSON
+WORK WITH ME
+SPONSOR
 
-Participation offer rules:
-- Titles must feel specific to THIS project (Soundcheck Seat, Setlist Session, Japan Crew, Kitchen Table Seat — not Inner Circle, VIP, General, Gold)
-- Include a price ladder with clearly different prices (example shape: $25, $60, $125, $250, $500 — adapt to the project)
+Offer rules:
+- Titles specific to THIS project
+- One short sentence with a concrete participation right
+- Price ladder roughly like: $25, $50, $75, $125, $200, $350, $750, $1500 (adapt to project)
 - More exclusive offers have fewer spots
-- Follow the Journey can be low-cost with higher capacity
-- PARTNER offers are sponsorship packages, not tickets
-- imageQuery should describe a relevant photo (stage, rehearsal, destination, group, studio, etc.)
-- If funding goal, price × spots across participation + partners should come close to goalValue
-- If people goal, participation spots should come close to goalValue
+- Higher prices combine proximity, influence, participation, expertise, scarcity, or recognition
+- SPONSOR offers include integration, mention, or naming — not logo-only
 
 Output valid JSON only. No Markdown.`;

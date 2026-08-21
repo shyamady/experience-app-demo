@@ -85,6 +85,65 @@ export function formatMoney(value: number): string {
   return formatFundingGoal(value);
 }
 
+export type PathToGoalLine = {
+  quantity: number;
+  price: number;
+  title: string;
+  subtotal: number;
+};
+
+/** Build a realistic example mix that reaches the funding target. */
+export function buildPathToGoal(
+  products: ExperienceProduct[],
+  goalValue: number,
+): PathToGoalLine[] {
+  const fans = products
+    .filter((product) => product.active && !isSponsorProduct(product))
+    .filter((product) => product.price > 0)
+    .sort((a, b) => a.price - b.price);
+
+  if (fans.length === 0 || goalValue <= 0) return [];
+
+  const picks = fans.slice(0, Math.min(5, fans.length));
+  const weights = [28, 22, 20, 16, 14].slice(0, picks.length);
+  const weightSum = weights.reduce((sum, value) => sum + value, 0);
+  let remaining = goalValue;
+  const lines: PathToGoalLine[] = [];
+
+  picks.forEach((product, index) => {
+    const isLast = index === picks.length - 1;
+    const share = isLast
+      ? remaining
+      : Math.round((goalValue * weights[index]) / weightSum);
+    const capacity = numericSpots(product.spots) || 40;
+    let quantity = Math.min(
+      capacity,
+      Math.max(1, Math.round(share / product.price)),
+    );
+    let subtotal = quantity * product.price;
+
+    if (isLast && subtotal < remaining) {
+      const needed = Math.ceil(remaining / product.price);
+      quantity = Math.min(capacity, Math.max(quantity, needed));
+      subtotal = quantity * product.price;
+    }
+
+    remaining = Math.max(0, remaining - subtotal);
+    lines.push({
+      quantity,
+      price: product.price,
+      title: product.title,
+      subtotal,
+    });
+  });
+
+  return lines;
+}
+
+export function pathToGoalTotal(lines: PathToGoalLine[]): number {
+  return lines.reduce((sum, line) => sum + line.subtotal, 0);
+}
+
 export function closeCoverageGap(
   products: ExperienceProduct[],
   goalType: GoalType,
@@ -111,11 +170,14 @@ export function closeCoverageGap(
 
 export function categoryEmoji(category: string): string {
   const value = category.toUpperCase();
-  if (value.includes("SHAPE")) return "🗳️";
-  if (value.includes("CONTRIBUTE")) return "📝";
-  if (value.includes("CO-CREATE")) return "✨";
-  if (value.includes("FOLLOW")) return "👀";
+  if (value.includes("SHAPE") || value.includes("INFLUENCE")) return "🗳️";
+  if (value.includes("SUPPORT")) return "💗";
+  if (value.includes("BEHIND") || value.includes("FOLLOW")) return "👀";
+  if (value.includes("TAKE PART") || value.includes("CONTRIBUTE") || value.includes("CO-CREATE")) {
+    return "✨";
+  }
+  if (value.includes("WORK WITH")) return "🎯";
   if (value.includes("PARTNER") || value.includes("SPONSOR")) return "🤝";
-  if (value.includes("JOIN")) return "🎟";
+  if (value.includes("JOIN") || value.includes("PERSON")) return "🎟";
   return "✨";
 }

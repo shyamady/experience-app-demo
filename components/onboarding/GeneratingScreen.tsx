@@ -102,8 +102,8 @@ export function GeneratingScreen() {
           {
             activity: data.activity,
             category: getProjectCategoryLabel(data.projectCategory) || undefined,
-            goalType: data.goalType ?? "funding",
-            goalValue: data.goalValue || (data.goalType === "people" ? 50 : 10000),
+            goalType: "funding",
+            goalValue: data.goalValue || 2500,
             goalUnsure: data.goalUnsure,
             participation: getParticipationLabelList(data.participationIds).length
               ? getParticipationLabelList(data.participationIds)

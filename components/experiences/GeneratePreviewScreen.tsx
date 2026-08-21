@@ -27,7 +27,7 @@ const BENEFITS = [
     icon: "heart",
   },
   {
-    title: "Participation, not tickets",
+    title: "Offers people can buy",
     description: "People can shape, contribute, co-create, join, follow, or partner.",
     icon: "sparkle",
   },
@@ -224,7 +224,7 @@ export function GeneratePreviewScreen() {
               onClick={handleSignUpToLaunch}
               className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-pink-600 shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] sm:text-base"
             >
-              Create My Launch
+              Create Campaign
               <SparkleIcon className="h-4 w-4 text-pink-500" />
             </button>
           </section>

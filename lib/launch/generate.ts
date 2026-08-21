@@ -10,19 +10,17 @@ import type { GenerateLaunchRequest, LaunchResponse } from "@/types/launch";
 const OPENAI_TIMEOUT_MS = 20_000;
 
 function buildUserPrompt(body: GenerateLaunchRequest): string {
-  const goalLabel =
-    body.goalType === "people"
-      ? `${body.goalValue} people`
-      : `$${body.goalValue.toLocaleString()}`;
+  const goalLabel = `$${body.goalValue.toLocaleString()}`;
 
   return [
-    "Turn this creator ambition into a simple launch model: what must sell or fill for the project to happen.",
+    "Turn this creator idea into a funding campaign with unique offers people can buy, join, influence, or sponsor.",
     "",
     `Project idea: ${body.activity}`,
     `Project category: ${body.category || "Not specified"}`,
-    `Primary goal type: ${body.goalType}`,
-    `Creator goal: ${goalLabel}${body.goalUnsure ? " (not sure — recommend a realistic goal)" : ""}`,
-    `Ways to participate: ${body.participation.join(", ")}`,
+    `Funding target: ${goalLabel}${body.goalUnsure ? " (not sure — recommend a realistic target between $500 and $5,000)" : ""}`,
+    `Offer kinds selected: ${body.participation.join(", ")}`,
+    "",
+    "Generate approximately 8 strong Ways to Join offers with a clear price ladder, plus a sponsor offer only if Sponsor was selected.",
   ].join("\n");
 }
 

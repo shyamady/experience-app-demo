@@ -1,13 +1,20 @@
 export const PARTICIPATION_CATEGORIES = [
+  "SUPPORT",
+  "BEHIND THE SCENES",
+  "HELP SHAPE IT",
+  "TAKE PART",
+  "JOIN IN PERSON",
+  "WORK WITH ME",
+  "SPONSOR",
+] as const;
+
+export const LEGACY_PRODUCT_CATEGORIES = [
   "SHAPE IT",
   "CONTRIBUTE",
   "CO-CREATE",
   "JOIN",
   "FOLLOW THE JOURNEY",
   "PARTNER",
-] as const;
-
-export const LEGACY_PRODUCT_CATEGORIES = [
   "ONLINE ACCESS",
   "LIVE ONLINE",
   "INTERACTIVE",
@@ -16,7 +23,6 @@ export const LEGACY_PRODUCT_CATEGORIES = [
   "IN PERSON",
   "MULTI-DAY",
   "SUPPORTER",
-  "SPONSOR",
   "PRESENTING SPONSOR",
 ] as const;
 

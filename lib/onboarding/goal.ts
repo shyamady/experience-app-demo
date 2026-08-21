@@ -5,18 +5,15 @@ export const PEOPLE_MAX = 500;
 export const PEOPLE_STEP = 5;
 export const PEOPLE_MILESTONES = [5, 100, 250, 500] as const;
 
-export const FUNDING_MIN = 1000;
-export const FUNDING_MAX = 100_000;
-export const FUNDING_STEP = 1000;
-export const FUNDING_MILESTONES = [1000, 25_000, 50_000, 100_000] as const;
+export const FUNDING_MIN = 500;
+export const FUNDING_MAX = 5_000;
+export const FUNDING_STEP = 100;
+export const FUNDING_MILESTONES = [500, 1000, 2000, 3000, 4000, 5000] as const;
 
 export const RECOMMENDED_PEOPLE = 50;
-export const RECOMMENDED_FUNDING = 10_000;
+export const RECOMMENDED_FUNDING = 2_500;
 
-export function snapGoalValue(
-  type: GoalType,
-  value: number,
-): number {
+export function snapGoalValue(type: GoalType, value: number): number {
   if (type === "people") {
     const snapped = Math.round(value / PEOPLE_STEP) * PEOPLE_STEP;
     return Math.min(PEOPLE_MAX, Math.max(PEOPLE_MIN, snapped));
@@ -32,7 +29,7 @@ export function formatPeopleGoal(value: number): string {
 
 export function formatFundingGoal(value: number): string {
   if (value >= FUNDING_MAX) {
-    return "$100K+";
+    return "$5,000";
   }
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -45,10 +42,11 @@ export function formatStepLabel(type: GoalType, value: number): string {
   if (type === "people") {
     return value >= PEOPLE_MAX ? "500+" : String(value);
   }
-  if (value >= FUNDING_MAX) return "$100K+";
   if (value >= 1000) {
     const thousands = value / 1000;
-    return Number.isInteger(thousands) ? `$${thousands}K` : `$${thousands}K`;
+    return Number.isInteger(thousands)
+      ? `$${thousands}K`
+      : `$${thousands.toFixed(1)}K`;
   }
   return formatFundingGoal(value);
 }
@@ -60,6 +58,20 @@ export function peopleContextLabel(value: number): string {
   if (value <= 120) return "A full room of people making it real.";
   if (value <= 300) return "A sizable community launch.";
   return "A major community moment.";
+}
+
+export function fundingContextLabel(value: number): string {
+  if (value <= 500) return "Enough to get a small idea moving.";
+  if (value <= 1000) {
+    return "A simple target for testing an idea with your community.";
+  }
+  if (value <= 2500) {
+    return "A solid starting point for a meaningful project.";
+  }
+  if (value <= 4000) {
+    return "Enough room to create something more ambitious.";
+  }
+  return "A strong target for bringing a bigger idea to life.";
 }
 
 export function parseMoneyInput(raw: string): number | null {

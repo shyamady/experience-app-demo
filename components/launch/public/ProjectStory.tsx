@@ -11,12 +11,12 @@ export function ProjectStory({ data }: ProjectStoryProps) {
 
   if (!story) return null;
 
-  const paragraphs = story.split(/\n+/).filter(Boolean).slice(0, 3);
+  const paragraphs = story.split(/\n+/).filter(Boolean).slice(0, 4);
 
   return (
     <section>
       <h2 className="text-2xl font-bold tracking-tight text-zinc-900">
-        Why I want to make this happen
+        Project story
       </h2>
       <div className="mt-5 flex items-start gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}

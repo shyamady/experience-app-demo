@@ -48,6 +48,10 @@ export type LaunchData = {
   creatorName: string;
   coverImageUrl: string;
   avatarUrl: string;
+  /** Creator pitch video for the story intro. If absent, skip story. */
+  creatorVideoUrl?: string;
+  /** One-line idea used on story screen 2. */
+  storyIdea?: string;
   whyItMatters?: string;
   creatorNote?: string;
   outlineHeading?: string;

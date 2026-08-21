@@ -191,7 +191,7 @@ export function ExperienceCard({
 
             <div>
               <label className="mb-1 block text-xs font-medium text-zinc-500">
-                How their participation helps
+                How this offer helps
               </label>
               <textarea
                 value={product.howItHelps ?? ""}
@@ -205,7 +205,7 @@ export function ExperienceCard({
 
             <div>
               <label className="mb-1 block text-xs font-medium text-zinc-500">
-                Access or involvement
+                What they get
               </label>
               <textarea
                 value={product.access ?? ""}

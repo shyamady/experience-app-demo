@@ -1,9 +1,9 @@
 export const GENERATING_STATUS_MESSAGES = [
   "Understanding your project",
-  "Matching ways to participate",
-  "Estimating what it takes",
-  "Designing what people can buy",
-  "Creating your project plan",
+  "Choosing valuable offers",
+  "Setting prices and capacity",
+  "Designing your campaign",
+  "Creating your preview",
 ] as const;
 
 export const GENERATING_FINAL_MESSAGE_INDEX =

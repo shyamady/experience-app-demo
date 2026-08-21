@@ -35,21 +35,28 @@ export function WhatItTakesCard({
   return (
     <section className="rounded-meuse bg-white px-5 py-6 shadow-meuse-card sm:px-6">
       <h2 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl">
-        What it takes to make this happen
+        {publicView
+          ? `What ${formatMoney(displayTotal)} makes possible`
+          : `What the ${formatMoney(displayTotal)} makes possible`}
       </h2>
-      <p className="mt-2 text-2xl font-bold text-zinc-900">
-        {publicView ? "Estimated need: " : ""}
-        {formatMoney(displayTotal)}
-        {publicView ? "" : " estimated need"}
-      </p>
       {!publicView && (
-        <p className="mt-1 text-xs text-zinc-400">
-          AI starting estimate. You can edit this later.
+        <p className="mt-1 text-sm text-zinc-500">
+          A realistic starting breakdown for this project.
+        </p>
+      )}
+      {publicView && (
+        <p className="mt-2 text-2xl font-bold text-zinc-900">
+          Estimated need: {formatMoney(displayTotal)}
         </p>
       )}
       {publicView && (
         <p className="mt-1 text-sm text-zinc-500">
           This is what participation is helping cover.
+        </p>
+      )}
+      {!publicView && (
+        <p className="mt-1 text-xs text-zinc-400">
+          AI starting estimate. You can edit this later.
         </p>
       )}
 
@@ -66,7 +73,7 @@ export function WhatItTakesCard({
         ))}
       </div>
 
-      <ul className={`mt-5 ${publicView ? "space-y-2.5" : "space-y-4"}`}>
+      <ul className={`mt-5 ${publicView ? "space-y-2.5" : "space-y-3"}`}>
         {lines.map((line, index) => (
           <li key={line.label} className="flex items-start gap-3">
             <span
@@ -80,7 +87,7 @@ export function WhatItTakesCard({
                   {formatMoney(line.amount)}
                 </p>
               </div>
-              {!publicView && (
+              {!publicView && line.description && (
                 <p className="mt-0.5 text-sm leading-relaxed text-zinc-500">
                   {line.description}
                 </p>
@@ -89,6 +96,11 @@ export function WhatItTakesCard({
           </li>
         ))}
       </ul>
+      {!publicView && (
+        <p className="mt-5 border-t border-zinc-100 pt-4 text-sm font-bold text-zinc-900">
+          Total: {formatMoney(displayTotal)}
+        </p>
+      )}
     </section>
   );
 }

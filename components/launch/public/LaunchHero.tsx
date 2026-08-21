@@ -13,9 +13,16 @@ import {
 type LaunchHeroProps = {
   data: LaunchData;
   compact?: boolean;
+  phaseLabel?: string;
+  onWatchStory?: () => void;
 };
 
-export function LaunchHero({ data, compact = false }: LaunchHeroProps) {
+export function LaunchHero({
+  data,
+  compact = false,
+  phaseLabel,
+  onWatchStory,
+}: LaunchHeroProps) {
   const place = getPrimaryPlace(data);
   const status = getCampaignDisplayStatus(data);
   const progress = getCampaignProgress(data);
@@ -23,13 +30,14 @@ export function LaunchHero({ data, compact = false }: LaunchHeroProps) {
   const expected = getExpectedDateCopy(data);
   const joinBy = data.cutOffDate ? formatFirstDate(data.cutOffDate) : "";
   const statusLabel =
-    status === "greenlit"
+    phaseLabel ??
+    (status === "greenlit"
       ? "🎉 GREENLIT"
       : status === "ended"
         ? "ENDED"
         : status === "cancelled"
           ? "CANCELLED"
-          : displayStatusLabel(status);
+          : displayStatusLabel(status));
 
   return (
     <div>
@@ -93,6 +101,15 @@ export function LaunchHero({ data, compact = false }: LaunchHeroProps) {
             <p className="text-sm font-medium text-zinc-500">{daysCopy}</p>
           )}
         </div>
+        {onWatchStory && (
+          <button
+            type="button"
+            onClick={onWatchStory}
+            className="mt-5 text-sm font-semibold text-pink-600"
+          >
+            Watch story
+          </button>
+        )}
       </div>
     </div>
   );

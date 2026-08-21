@@ -142,6 +142,34 @@ function migrateLaunchData(parsed: Record<string, unknown>): LaunchData {
     if (!migrated.cutOffDate) migrated.cutOffDate = "2026-08-28";
     if (!migrated.budgetLines?.length) migrated.budgetLines = QUIET_ROOM_BUDGET;
     if (!migrated.dateCertainty) migrated.dateCertainty = "confirmed";
+    if (
+      !migrated.creatorVideoUrl ||
+      migrated.creatorVideoUrl.includes("mixkit.co")
+    ) {
+      migrated.creatorVideoUrl = QUIET_ROOM_VIDEO;
+    }
+    if (!migrated.storyIdea) {
+      migrated.storyIdea =
+        "I want to create one intimate acoustic night in Tokyo — and bring the community inside the making of it.";
+    }
+    const quietProductIds = new Set(
+      createQuietRoomProducts().map((product) => product.id),
+    );
+    const hasLegacyQuietProducts = migrated.products.some((product) =>
+      ["exp-shape-it", "exp-contribute", "exp-co-create", "exp-join"].includes(
+        product.id,
+      ),
+    );
+    const missingQuietProducts = !migrated.products.some((product) =>
+      quietProductIds.has(product.id),
+    );
+    if (
+      hasLegacyQuietProducts ||
+      missingQuietProducts ||
+      !hasCustomParticipationTitles(migrated.products)
+    ) {
+      migrated.products = createQuietRoomProducts();
+    }
   }
 
   return migrated;
@@ -196,114 +224,104 @@ function createDemoProducts(): ExperienceProduct[] {
 function createQuietRoomProducts(): ExperienceProduct[] {
   return [
     {
-      id: "exp-shape-it",
-      category: "SHAPE IT",
-      title: "Setlist & Space Council",
+      id: "exp-supporter",
+      category: "SUPPORT",
+      title: "Circle Supporter",
       description:
-        "Help choose 3–4 songs, vote on the running order, and shape the room, lighting and atmosphere.",
-      howItHelps:
-        "Early choices give the night a voice that belongs to the people in the room.",
-      access: "A private planning session and founding credit in project updates.",
-      phase: "Validate the idea",
-      price: 50,
-      spots: 12,
-      imageUrl: EXPERIENCE_IMAGES.acoustic,
-      active: true,
-      benefits: [
-        "Vote on the setlist",
-        "Help shape the space",
-        "Join the private community",
-        "Follow the creation process",
-      ],
-    },
-    {
-      id: "exp-contribute",
-      category: "CONTRIBUTE",
-      title: "Song & Story Contributor",
-      description:
-        "Share a song, memory, or moment that could become part of the night.",
-      howItHelps:
-        "Community material gives the set a distinctive voice and more to build from.",
-      access: "Selected ideas are developed in a small working session.",
-      phase: "Validate the idea",
-      price: 75,
-      spots: 20,
+        "Help make the night possible and follow private progress updates.",
+      howItHelps: "Early support gives the project momentum.",
+      access: "Private updates and founding credit.",
+      price: 20,
+      spots: 100,
       imageUrl: EXPERIENCE_IMAGES.group,
       active: true,
-      benefits: [
-        "Submit a song or story",
-        "Join a working session",
-        "See your idea considered",
-      ],
-    },
-    {
-      id: "exp-co-create",
-      category: "CO-CREATE",
-      title: "Circle Collaborator",
-      description:
-        "Join a small rehearsal where selected ideas are shaped into the live set.",
-      howItHelps:
-        "Hands-on collaboration turns the concept into a night ready to share.",
-      access: "Rehearsal participation and behind-the-scenes process updates.",
-      phase: "Produce and deliver",
-      price: 150,
-      spots: 10,
-      imageUrl: EXPERIENCE_IMAGES.backstage,
-      active: true,
-      benefits: [
-        "Join a rehearsal",
-        "Help arrange the set",
-        "Stay close to the process",
-      ],
-    },
-    {
-      id: "exp-join",
-      category: "JOIN",
-      title: "In the Circle",
-      description:
-        "Be in the room for the one-night acoustic circle — not as an audience, as part of it.",
-      howItHelps: "A committed group makes an intimate live night possible.",
-      access: "A place in the circle on the night of the show.",
-      phase: "Produce and deliver",
-      price: 220,
-      spots: 40,
-      imageUrl: EXPERIENCE_IMAGES.crowd,
-      active: true,
-      benefits: [
-        "Sit in the circle",
-        "Meet the artists",
-        "Stay after the show",
-      ],
     },
     {
       id: "exp-follow",
-      category: "FOLLOW THE JOURNEY",
-      title: "Journey Member",
+      category: "BEHIND THE SCENES",
+      title: "Quiet Room Diary",
       description:
-        "Receive private updates, behind-the-scenes access, and early peeks as the night takes shape.",
-      howItHelps: "A close audience keeps momentum going between milestones.",
-      access: "Private project updates and early peeks before the night.",
-      phase: "Validate the idea",
-      price: 29,
-      spots: "unlimited",
+        "Private rehearsals, rough cuts, and peeks as the night takes shape.",
+      howItHelps: "Closer followers keep energy high between milestones.",
+      access: "Private project updates.",
+      price: 40,
+      spots: 80,
       imageUrl: EXPERIENCE_IMAGES.stage,
       active: true,
-      benefits: [
-        "Follow the creation process",
-        "Get private updates",
-        "See early previews",
-      ],
+    },
+    {
+      id: "exp-vote",
+      category: "HELP SHAPE IT",
+      title: "Setlist Vote",
+      description:
+        "Help choose songs, running order, and the feeling of the room.",
+      howItHelps: "Real decisions give the night a community voice.",
+      access: "Structured votes on key creative choices.",
+      price: 75,
+      spots: 30,
+      imageUrl: EXPERIENCE_IMAGES.acoustic,
+      active: true,
+    },
+    {
+      id: "exp-listening",
+      category: "TAKE PART",
+      title: "Private Listening Room",
+      description:
+        "Join a live virtual listening session and discuss the project directly.",
+      howItHelps: "Conversation shapes the final set.",
+      access: "A seat in a private listening session.",
+      price: 125,
+      spots: 20,
+      imageUrl: EXPERIENCE_IMAGES.studio,
+      active: true,
+    },
+    {
+      id: "exp-soundcheck",
+      category: "TAKE PART",
+      title: "Soundcheck Seat",
+      description:
+        "Join an intimate pre-show soundcheck with the creator.",
+      howItHelps: "Small-group access makes the night feel personal.",
+      access: "Pre-show soundcheck participation.",
+      price: 200,
+      spots: 12,
+      imageUrl: EXPERIENCE_IMAGES.backstage,
+      active: true,
+    },
+    {
+      id: "exp-dinner",
+      category: "JOIN IN PERSON",
+      title: "Dinner Seat",
+      description:
+        "Join a small community dinner before the circle begins.",
+      howItHelps: "Shared table time builds the room.",
+      access: "A place at dinner.",
+      price: 120,
+      spots: 16,
+      imageUrl: EXPERIENCE_IMAGES.dinner,
+      active: true,
+    },
+    {
+      id: "exp-circle",
+      category: "JOIN IN PERSON",
+      title: "In the Circle",
+      description:
+        "Be in the room for the one-night acoustic circle.",
+      howItHelps: "A committed group makes an intimate live night possible.",
+      access: "A place in the circle.",
+      price: 250,
+      spots: 40,
+      imageUrl: EXPERIENCE_IMAGES.crowd,
+      active: true,
     },
     {
       id: "exp-partner",
-      category: "PARTNER",
+      category: "SPONSOR",
       title: "Sound Partner",
       description:
         "Help cover sound production and be recognized as the audio partner for the night.",
-      howItHelps:
-        "Partnership closes the gap between the idea and a real night in the room.",
-      access: "Recognition as a partner bringing the project to life.",
-      phase: "Reach the minimum goal",
+      howItHelps: "Partnership closes the funding gap.",
+      access: "Official partner recognition and content mention.",
       price: 1500,
       spots: 2,
       imageUrl: EXPERIENCE_IMAGES.venue,
@@ -311,6 +329,8 @@ function createQuietRoomProducts(): ExperienceProduct[] {
     },
   ];
 }
+
+const QUIET_ROOM_VIDEO = "/videos/quiet-room-pitch.mp4";
 
 const QUIET_ROOM_BUDGET: BudgetLine[] = [
   { label: "Venue", amount: 3500, description: "Space rental and basic venue costs." },
@@ -329,7 +349,10 @@ function createTokyoCampaign(products?: ExperienceProduct[]): LaunchData {
     title: "The Quiet Room",
     subtitle: "One-Night Acoustic Circle",
     description:
-      "Help me bring this room together for one unforgettable night.",
+      "Help me bring this room together for one unforgettable night — from early setlist decisions to the final circle.",
+    storyIdea:
+      "I want to create one intimate acoustic night in Tokyo — and bring the community inside the making of it.",
+    creatorVideoUrl: QUIET_ROOM_VIDEO,
     firstDate: "2026-08-30",
     dateCertainty: "confirmed",
     locationType: "in-person",
@@ -351,7 +374,7 @@ function createTokyoCampaign(products?: ExperienceProduct[]): LaunchData {
     slug: "the-quiet-room",
     coverImageUrl: QUIET_ROOM_COVER,
     creatorNote:
-      "I've wanted to create a show where the audience isn't just watching. I want the people in the room to help shape what the night becomes.",
+      "I've wanted to create a show where the audience isn't just watching.\n\nI want the people in the room to help shape what the night becomes — the songs, the space, the feeling after the last note.\n\nIf we reach the goal, we lock the venue, finish the set, and make the circle real together.",
     outlineHeading: "The Night",
     outline: [
       {
@@ -780,7 +803,7 @@ export function createLaunchFromOnboarding(
     creatorNote: hero?.whyItMatters,
     goalType,
     goalValue,
-    milestones: undefined,
+    milestones: hero?.milestones,
   };
 
   writeCampaignsState({

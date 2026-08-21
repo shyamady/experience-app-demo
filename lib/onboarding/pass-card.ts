@@ -16,59 +16,67 @@ export type PassBadgeTone =
 
 export function getPassBadgeLabel(category: ExperienceCategory): string {
   switch (category) {
-    case "SHAPE IT":
-      return "SHAPE IT";
-    case "CONTRIBUTE":
-      return "CONTRIBUTE";
-    case "CO-CREATE":
-      return "CO-CREATE";
-    case "JOIN":
-      return "JOIN";
+    case "SUPPORT":
+    case "SUPPORTER":
+      return "SUPPORT";
+    case "BEHIND THE SCENES":
     case "FOLLOW THE JOURNEY":
-      return "FOLLOW";
+      return "BEHIND THE SCENES";
+    case "HELP SHAPE IT":
+    case "SHAPE IT":
+      return "HELP SHAPE IT";
+    case "TAKE PART":
+    case "CO-CREATE":
+    case "CONTRIBUTE":
+      return "TAKE PART";
+    case "JOIN IN PERSON":
+    case "JOIN":
+    case "IN PERSON":
+    case "MULTI-DAY":
+      return "IN PERSON";
+    case "WORK WITH ME":
+      return "WORK WITH ME";
     case "PARTNER":
-      return "PARTNER";
     case "PRESENTING SPONSOR":
     case "SPONSOR":
       return "SPONSOR";
-    case "SUPPORTER":
-      return "SUPPORTER";
-    case "IN PERSON":
-    case "MULTI-DAY":
-      return "VIP ACCESS";
     case "LIVE ONLINE":
     case "ONLINE Q&A":
     case "INTERACTIVE":
-      return "LIVE ACCESS";
+      return "LIVE";
     case "ONLINE + GIFT":
-      return "GIFT PASS";
+      return "GIFT";
     default:
-      return "ACCESS";
+      return "OFFER";
   }
 }
 
 export function getPassBadgeTone(category: ExperienceCategory): PassBadgeTone {
   switch (category) {
-    case "SHAPE IT":
-      return "shape";
-    case "CONTRIBUTE":
-      return "contribute";
-    case "CO-CREATE":
-      return "cocreate";
-    case "JOIN":
-      return "join";
+    case "SUPPORT":
+    case "SUPPORTER":
+      return "supporter";
+    case "BEHIND THE SCENES":
     case "FOLLOW THE JOURNEY":
       return "follow";
+    case "HELP SHAPE IT":
+    case "SHAPE IT":
+      return "shape";
+    case "TAKE PART":
+    case "CO-CREATE":
+      return "cocreate";
+    case "CONTRIBUTE":
+      return "contribute";
+    case "JOIN IN PERSON":
+    case "JOIN":
+    case "IN PERSON":
+    case "MULTI-DAY":
+    case "WORK WITH ME":
+      return "join";
     case "PARTNER":
-      return "partner";
     case "PRESENTING SPONSOR":
     case "SPONSOR":
       return "sponsor";
-    case "SUPPORTER":
-      return "supporter";
-    case "IN PERSON":
-    case "MULTI-DAY":
-      return "vip";
     case "LIVE ONLINE":
     case "ONLINE Q&A":
     case "INTERACTIVE":
@@ -108,38 +116,32 @@ export function getPassBadgeStyles(tone: PassBadgeTone): string {
 
 export function getPassIncludesCopy(category: ExperienceCategory): string {
   switch (category) {
-    case "SHAPE IT":
-      return "votes, feedback, and a role in key creative decisions";
-    case "CONTRIBUTE":
-      return "a way to submit ideas, stories, music, design, or movement";
-    case "CO-CREATE":
-      return "planning, workshops, rehearsals, or the creative process";
-    case "JOIN":
-      return "a place to attend, perform, travel, or become part of the project";
-    case "FOLLOW THE JOURNEY":
-      return "private updates, behind-the-scenes access, and early previews";
-    case "PARTNER":
-      return "recognition for funding, space, expertise, or production support";
-    case "PRESENTING SPONSOR":
-      return "featured placement, campaign visibility, priority access";
-    case "SPONSOR":
-      return "logo placement, brand mentions, campaign visibility";
+    case "SUPPORT":
     case "SUPPORTER":
-      return "mission support, exclusive updates, community recognition";
+      return "recognition, credits, and a place in the project story";
+    case "BEHIND THE SCENES":
+    case "FOLLOW THE JOURNEY":
+      return "private updates, demos, and work-in-progress previews";
+    case "HELP SHAPE IT":
+    case "SHAPE IT":
+      return "votes, feedback, and influence over real decisions";
+    case "TAKE PART":
+    case "CO-CREATE":
+    case "CONTRIBUTE":
+      return "a hands-on role or activity inside the project";
+    case "JOIN IN PERSON":
+    case "JOIN":
     case "IN PERSON":
-      return "in-person access, creator time, exclusive moments";
     case "MULTI-DAY":
-      return "multi-day access, itinerary, private group moments";
-    case "LIVE ONLINE":
-      return "live session access, Q&A, replay";
-    case "ONLINE Q&A":
-      return "private Q&A, priority questions, recording";
-    case "INTERACTIVE":
-      return "interactive sessions, votes, real-time participation";
-    case "ONLINE + GIFT":
-      return "online access plus exclusive gift";
+      return "a place in the real-world experience";
+    case "WORK WITH ME":
+      return "direct feedback, coaching, or collaboration with the creator";
+    case "PARTNER":
+    case "PRESENTING SPONSOR":
+    case "SPONSOR":
+      return "meaningful visibility and involvement as a project partner";
     default:
-      return "behind-the-scenes access, updates, exclusive content";
+      return "a clear way to join and help make the project happen";
   }
 }
 
@@ -162,8 +164,8 @@ export function getAvailabilityLabel(
         ? "partner"
         : "partners"
       : spots === 1
-        ? "person"
-        : "people";
+        ? "spot"
+        : "spots";
 
   if (spots <= 2) {
     return { value: `${spots} ${unit}`, urgency: "EXTREMELY LIMITED" };

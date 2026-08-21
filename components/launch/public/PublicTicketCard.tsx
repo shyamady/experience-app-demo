@@ -45,6 +45,12 @@ export function PublicTicketCard({
           : sponsor
             ? `${capacity.remaining} available`
             : `${capacity.remaining} spots left`;
+  const earlyBenefit = product.benefits?.find((item) =>
+    item.toLowerCase().startsWith("early supporters paid"),
+  );
+  const earlyPriceMatch = earlyBenefit?.match(/\$[\d,]+/);
+  const showGreenlitPricing = Boolean(earlyPriceMatch);
+
   const ctaLabel = soldOut
     ? "SOLD OUT"
     : !canJoin
@@ -88,8 +94,23 @@ export function PublicTicketCard({
           {product.description}
         </p>
         <p className="mt-4 text-2xl font-bold text-zinc-900">
-          {formatMoney(product.price)}
+          {showGreenlitPricing && earlyPriceMatch ? (
+            <>
+              <span className="mr-2 text-lg font-semibold text-zinc-400 line-through">
+                {earlyPriceMatch[0]}
+              </span>
+              {formatMoney(product.price)}
+            </>
+          ) : (
+            formatMoney(product.price)
+          )}
         </p>
+        {showGreenlitPricing && (
+          <p className="mt-1 text-xs font-medium text-zinc-500">
+            Early supporters helped make this happen, so they received the best
+            price.
+          </p>
+        )}
         <p className="mt-1 text-sm font-medium text-zinc-600">{claimedLabel}</p>
         {capacity.total !== "unlimited" && (
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100">

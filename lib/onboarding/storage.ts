@@ -75,10 +75,14 @@ const DEFAULT_DATA: OnboardingData = {
 };
 
 const LEGACY_PARTICIPATION_MAP: Record<string, ParticipationId> = {
-  watch: "follow",
-  influence: "shape",
-  interact: "contribute",
-  support: "partner",
+  watch: "behind-scenes",
+  follow: "behind-scenes",
+  shape: "influence",
+  contribute: "participate",
+  "co-create": "participate",
+  join: "in-person",
+  interact: "participate",
+  partner: "sponsor",
 };
 
 function migrateParticipationIds(
@@ -107,13 +111,12 @@ function migrateStoredData(parsed: Partial<OnboardingData>): OnboardingData {
     merged.needIds = ["funding", "participants"];
   }
 
-  if (!merged.goalType) {
-    if (merged.needIds.includes("funding") && !merged.needIds.includes("participants")) {
-      merged.goalType = "funding";
-      merged.goalValue = merged.goalValue || 10000;
-    } else if (merged.needIds.includes("participants")) {
-      merged.goalType = "people";
-      merged.goalValue = merged.goalValue || 50;
+  if (!merged.goalType || merged.goalType === "people") {
+    merged.goalType = "funding";
+    if (!merged.goalValue || merged.goalValue < 500 || merged.goalValue > 5000) {
+      merged.goalValue = merged.goalValue && merged.goalValue > 5000
+        ? 5000
+        : merged.goalValue || 2500;
     }
   }
 

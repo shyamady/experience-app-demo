@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { WhatItTakesCard } from "@/components/experiences/WhatItTakesCard";
+import { CampaignPhaseBanner } from "@/components/launch/public/CampaignPhaseBanner";
+import { CampaignPhaseSelector } from "@/components/launch/public/CampaignPhaseSelector";
+import { CampaignStoryIntro } from "@/components/launch/public/CampaignStoryIntro";
 import { LaunchHero } from "@/components/launch/public/LaunchHero";
-import { LiveProgressSection } from "@/components/launch/public/LiveProgressSection";
 import { ParticipatePanel } from "@/components/launch/public/ParticipatePanel";
 import { ProjectDetails, ProjectStory } from "@/components/launch/public/ProjectStory";
 import { SponsorshipSection } from "@/components/launch/public/SponsorshipSection";
@@ -16,12 +18,22 @@ import {
 import { UpdatesPanel } from "@/components/launch/public/UpdatesPanel";
 import { getCampaignGoalType, getCampaignGoalValue } from "@/lib/dashboard/campaign-progress";
 import { getCampaignDisplayStatus } from "@/lib/dashboard/campaign-status";
+import {
+  CAMPAIGN_PHASE_OPTIONS,
+  getDefaultCampaignPhase,
+  getPhaseOffers,
+  type CampaignPhase,
+} from "@/lib/launch/campaign-phase";
 import type { LaunchData } from "@/lib/launch/types";
 import {
   getLowestAvailablePrice,
   getPublicOffers,
   isLiveLaunch,
 } from "@/lib/launch/public-view";
+import {
+  clearProjectStoryCompletion,
+  hasCompletedProjectStory,
+} from "@/lib/launch/story";
 
 type PublicLandingPageProps = {
   data: LaunchData;
@@ -32,19 +44,29 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showSticky, setShowSticky] = useState(false);
+  const [phase, setPhase] = useState<CampaignPhase>(() =>
+    getDefaultCampaignPhase(data),
+  );
+  const [storyReady, setStoryReady] = useState(compact);
+  const [showStory, setShowStory] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
   const joinRef = useRef<HTMLDivElement>(null);
 
-  const offers = useMemo(() => getPublicOffers(data), [data]);
+  const phaseData = useMemo(
+    () => ({ ...data, products: getPhaseOffers(data, phase) }),
+    [data, phase],
+  );
+  const offers = useMemo(() => getPublicOffers(phaseData), [phaseData]);
   const fromPrice = getLowestAvailablePrice(offers.participation);
   const selected =
     offers.participation.find((offer) => offer.product.id === selectedId)?.product ??
     offers.sponsorship.find((offer) => offer.product.id === selectedId)?.product ??
     null;
   const status = getCampaignDisplayStatus(data);
-  const canJoin = isLiveLaunch(data);
-  const waitlist = data.salesMode === "waitlist";
-  const ended = status === "ended" || status === "cancelled";
+  const canJoin =
+    isLiveLaunch(data) || phase === "during" || phase === "after" || phase === "greenlit";
+  const waitlist = data.salesMode === "waitlist" && phase === "funding";
+  const ended = phase === "after" ? false : status === "ended" || status === "cancelled";
   const remainingSpots = offers.participation.reduce<number | null>((lowest, offer) => {
     const remaining = offer.capacity.remaining;
     if (remaining === "unlimited" || offer.capacity.soldOut) return lowest;
@@ -52,9 +74,27 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
     return Math.min(lowest, remaining);
   }, null);
   const budgetLines = data.budgetLines ?? [];
+  const hasVideo = Boolean(data.creatorVideoUrl);
+  const phaseLabel = CAMPAIGN_PHASE_OPTIONS.find((option) => option.id === phase)?.label;
 
   useEffect(() => {
-    if (compact) return;
+    if (compact) {
+      setStoryReady(true);
+      setShowStory(false);
+      return;
+    }
+    if (!hasVideo) {
+      setStoryReady(true);
+      setShowStory(false);
+      return;
+    }
+    const completed = hasCompletedProjectStory(data.id);
+    setShowStory(!completed);
+    setStoryReady(true);
+  }, [compact, data.id, hasVideo]);
+
+  useEffect(() => {
+    if (compact || showStory) return;
     const node = progressRef.current;
     if (!node) return;
     const observer = new IntersectionObserver(
@@ -63,7 +103,7 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [compact]);
+  }, [compact, showStory]);
 
   function scrollToJoin() {
     joinRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -85,6 +125,24 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
     scrollToJoin();
   }
 
+  function replayStory() {
+    clearProjectStoryCompletion(data.id);
+    setShowStory(true);
+  }
+
+  if (!storyReady) {
+    return <div className="min-h-dvh bg-black" />;
+  }
+
+  if (!compact && showStory && hasVideo) {
+    return (
+      <CampaignStoryIntro
+        data={data}
+        onComplete={() => setShowStory(false)}
+      />
+    );
+  }
+
   return (
     <div
       className={`bg-[#fff7fa] ${
@@ -93,18 +151,29 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
     >
       {!compact && (
         <header className="sticky top-0 z-30 border-b border-pink-100/80 bg-white/90 backdrop-blur-sm">
-          <div className="mx-auto flex h-12 max-w-[800px] items-center justify-between px-5 lg:max-w-5xl">
+          <div className="mx-auto flex h-12 max-w-[800px] items-center justify-between gap-3 px-5 lg:max-w-5xl">
             <span className="font-meuse-display text-lg font-extrabold tracking-tight meuse-gradient-text">
               meuse
             </span>
-            <nav className="hidden items-center gap-4 text-sm text-zinc-500 sm:flex">
-              <a href="#overview" className="hover:text-zinc-800">Overview</a>
-              <a href="#join" className="hover:text-zinc-800">Join</a>
-              {offers.sponsorship.length > 0 && (
-                <a href="#sponsors" className="hover:text-zinc-800">Sponsors</a>
-              )}
-              <a href="#updates" className="hover:text-zinc-800">Updates</a>
-            </nav>
+            <div className="flex items-center gap-3">
+              <CampaignPhaseSelector phase={phase} onChange={setPhase} />
+              <nav className="hidden items-center gap-4 text-sm text-zinc-500 sm:flex">
+                <a href="#overview" className="hover:text-zinc-800">
+                  Overview
+                </a>
+                <a href="#join" className="hover:text-zinc-800">
+                  Join
+                </a>
+                {offers.sponsorship.length > 0 && phase !== "during" && phase !== "after" && (
+                  <a href="#sponsors" className="hover:text-zinc-800">
+                    Sponsors
+                  </a>
+                )}
+                <a href="#updates" className="hover:text-zinc-800">
+                  Updates
+                </a>
+              </nav>
+            </div>
           </div>
         </header>
       )}
@@ -119,20 +188,48 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
         </div>
       )}
 
-      <div className={compact ? "" : "mx-auto max-w-5xl lg:grid lg:grid-cols-[minmax(0,800px)_16rem] lg:items-start lg:justify-center lg:gap-8 lg:px-6"}>
+      <div
+        className={
+          compact
+            ? ""
+            : "mx-auto max-w-5xl lg:grid lg:grid-cols-[minmax(0,800px)_16rem] lg:items-start lg:justify-center lg:gap-8 lg:px-6"
+        }
+      >
         <div className={compact ? "" : "mx-auto w-full max-w-[800px]"}>
           <div id="overview">
-            <LaunchHero data={data} compact={compact} />
+            <LaunchHero
+              data={data}
+              compact={compact}
+              phaseLabel={phaseLabel}
+              onWatchStory={
+                !compact && hasVideo ? replayStory : undefined
+              }
+            />
           </div>
 
           <div className={compact ? "px-4" : "px-5 sm:px-6"}>
             <div ref={progressRef} className="mt-8">
-              <LiveProgressSection
+              <CampaignPhaseBanner
                 data={data}
-                canJoin={canJoin}
+                phase={phase}
                 onJoin={scrollToJoin}
               />
             </div>
+
+            <div className="mt-12">
+              <ProjectStory data={data} />
+            </div>
+
+            {budgetLines.length > 0 && phase !== "after" && (
+              <div className="mt-12">
+                <WhatItTakesCard
+                  lines={budgetLines}
+                  goalType={getCampaignGoalType(data)}
+                  goalValue={getCampaignGoalValue(data)}
+                  variant="public"
+                />
+              </div>
+            )}
 
             <div
               id="join"
@@ -149,34 +246,25 @@ export function PublicLandingPage({ data, compact = false }: PublicLandingPagePr
               />
             </div>
 
-            {budgetLines.length > 0 && (
-              <div className="mt-12">
-                <WhatItTakesCard
-                  lines={budgetLines}
-                  goalType={getCampaignGoalType(data)}
-                  goalValue={getCampaignGoalValue(data)}
-                  variant="public"
-                />
-              </div>
-            )}
-
-            {offers.sponsorship.length > 0 && (
-              <div id="sponsors" className="mt-12 scroll-mt-16">
-                <SponsorshipSection
-                  offers={offers.sponsorship}
-                  canJoin={canJoin}
-                  onJoin={joinProduct}
-                />
-              </div>
-            )}
+            {offers.sponsorship.length > 0 &&
+              phase !== "during" &&
+              phase !== "after" && (
+                <div id="sponsors" className="mt-12 scroll-mt-16">
+                  <SponsorshipSection
+                    offers={offers.sponsorship}
+                    canJoin={canJoin}
+                    onJoin={joinProduct}
+                  />
+                </div>
+              )}
 
             <div className="mt-12">
               <ProjectDetails data={data} />
             </div>
-            <div className="mt-12">
-              <ProjectStory data={data} />
-            </div>
-            <div id="updates" className={`mt-12 scroll-mt-16 ${compact ? "pb-6" : "pb-28"}`}>
+            <div
+              id="updates"
+              className={`mt-12 scroll-mt-16 ${compact ? "pb-6" : "pb-28"}`}
+            >
               <UpdatesPanel campaignId={data.id} />
             </div>
           </div>

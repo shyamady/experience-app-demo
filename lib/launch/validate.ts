@@ -47,11 +47,11 @@ function normalizeProduct(value: unknown): LaunchProduct | null {
     description: value.description,
     howItHelps: asString(
       value.howItHelps,
-      "This participation helps make the project possible.",
+      "This offer helps make the project possible.",
     ),
     access: asString(
       value.access,
-      "Participants receive involvement tied to this role.",
+      "Participants receive a clear way to join this offer.",
     ),
     price,
     spots,
@@ -106,6 +106,8 @@ export function normalizeLaunchResponse(
 
   return {
     heroTitle: value.heroTitle,
+    heroSubtitle:
+      typeof value.heroSubtitle === "string" ? value.heroSubtitle : undefined,
     heroDescription: value.heroDescription,
     heroImageQuery: asString(
       value.heroImageQuery,
@@ -138,6 +140,17 @@ export function normalizeLaunchResponse(
       typeof value.suggestedMinimumGoal === "string"
         ? value.suggestedMinimumGoal
         : undefined,
-    milestones: Array.isArray(value.milestones) ? [] : undefined,
+    milestones: Array.isArray(value.milestones)
+      ? value.milestones
+          .map((item) => {
+            if (!isRecord(item) || typeof item.title !== "string") return null;
+            return {
+              title: item.title,
+              description: asString(item.description),
+            };
+          })
+          .filter((item): item is NonNullable<typeof item> => item !== null)
+          .slice(0, 5)
+      : undefined,
   };
 }

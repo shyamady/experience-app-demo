@@ -46,91 +46,99 @@ export const EXPERIENCE_TEMPLATES: {
   imageKey: keyof typeof EXPERIENCE_IMAGES;
 }[] = [
   {
-    id: "shape-it",
-    label: "Shape It",
-    category: "SHAPE IT",
-    title: "Founding Participant",
+    id: "support",
+    label: "Support",
+    category: "SUPPORT",
+    title: "Founding Supporter",
     description:
-      "Vote on key creative decisions and join one planning session before the project is produced.",
-    howItHelps:
-      "Early feedback helps the creator choose the right scale, tone, and first public version.",
-    access: "A private planning session and founding credit in project updates.",
-    phase: "Validate the idea",
-    price: 45,
-    spots: 40,
+      "Help make the idea possible and become part of its story with credits and early updates.",
+    howItHelps: "Early support gives the project momentum and a founding community.",
+    access: "Name in project credits and supporter-only updates.",
+    phase: "",
+    price: 35,
+    spots: 100,
     imageKey: "group",
   },
   {
-    id: "contribute",
-    label: "Contribute",
-    category: "CONTRIBUTE",
-    title: "Creative Contributor",
+    id: "behind-scenes",
+    label: "Behind the Scenes",
+    category: "BEHIND THE SCENES",
+    title: "Studio Diary",
     description:
-      "Submit an original idea, story, movement, or music sketch for the project.",
-    howItHelps:
-      "Community material gives the project a distinctive voice and more to build from.",
-    access: "Selected ideas are developed in a small working session.",
-    phase: "Validate the idea",
-    price: 75,
-    spots: 20,
-    imageKey: "video",
+      "Private demos, production notes, and unreleased moments as the project takes shape.",
+    howItHelps: "Closer followers keep energy high between public milestones.",
+    access: "Private project updates and early previews.",
+    phase: "",
+    price: 55,
+    spots: 80,
+    imageKey: "studio",
   },
   {
-    id: "co-create",
-    label: "Co-create",
-    category: "CO-CREATE",
-    title: "Creative Collaborator",
+    id: "influence",
+    label: "Help Shape It",
+    category: "HELP SHAPE IT",
+    title: "Decision Circle",
     description:
-      "Join a small rehearsal or workshop where selected ideas are developed together.",
-    howItHelps:
-      "Hands-on collaboration turns the concept into something ready to produce.",
-    access: "Workshop participation and behind-the-scenes process updates.",
-    phase: "Produce and deliver",
-    price: 150,
-    spots: 10,
+      "Vote on real creative choices and help shape the final direction.",
+    howItHelps: "Real decisions give the project a voice that belongs to the people in it.",
+    access: "Structured votes and a private review panel.",
+    phase: "",
+    price: 125,
+    spots: 25,
+    imageKey: "acoustic",
+  },
+  {
+    id: "participate",
+    label: "Take Part",
+    category: "TAKE PART",
+    title: "Working Session",
+    description:
+      "Join a hands-on workshop or creative session inside the project.",
+    howItHelps: "Active participation turns the idea into something people help make.",
+    access: "A seat in a live working session.",
+    phase: "",
+    price: 180,
+    spots: 15,
     imageKey: "gift",
   },
   {
-    id: "join",
-    label: "Join",
-    category: "JOIN",
-    title: "Project Participant",
+    id: "in-person",
+    label: "Join In Person",
+    category: "JOIN IN PERSON",
+    title: "Opening Night Seat",
     description:
-      "Attend, travel, perform, or become part of the final project.",
-    howItHelps:
-      "A committed group makes the live or in-person version possible.",
-    access: "A place in the final gathering, show, trip, or presentation.",
-    phase: "Produce and deliver",
-    price: 220,
+      "Be there in person for the real-world experience.",
+    howItHelps: "A committed room makes the live version possible.",
+    access: "A place at the final gathering or event.",
+    phase: "",
+    price: 250,
     spots: 40,
-    imageKey: "travel",
+    imageKey: "crowd",
   },
   {
-    id: "follow",
-    label: "Follow the Journey",
-    category: "FOLLOW THE JOURNEY",
-    title: "Journey Member",
+    id: "work-with-me",
+    label: "Work With Me",
+    category: "WORK WITH ME",
+    title: "Private Review",
     description:
-      "Receive private updates, behind-the-scenes access, and early previews as the project takes shape.",
-    howItHelps:
-      "A close audience keeps momentum going between milestones.",
-    access: "Private project updates and early peeks before public release.",
-    phase: "Validate the idea",
-    price: 29,
-    spots: "unlimited",
-    imageKey: "video",
+      "Send your work and join a private feedback session with clear next steps.",
+    howItHelps: "Direct collaboration creates high-value outcomes for both sides.",
+    access: "A 1:1 feedback session with written notes.",
+    phase: "",
+    price: 350,
+    spots: 8,
+    imageKey: "coaching",
   },
   {
-    id: "partner",
-    label: "Partner",
-    category: "PARTNER",
-    title: "Presenting Partner",
+    id: "sponsor",
+    label: "Sponsor",
+    category: "SPONSOR",
+    title: "Project Partner",
     description:
-      "Provide funding, space, products, or production resources that help bring the project to life.",
-    howItHelps:
-      "Partnership closes the gap between the idea and a real production.",
-    access: "Recognition as a partner bringing the project to life.",
-    phase: "Reach the minimum goal",
+      "Help fund the project with brand integration, creator mention, and official partner status.",
+    howItHelps: "Sponsorship closes the gap between the idea and a real production.",
+    access: "Integrated visibility across selected project content.",
+    phase: "",
     price: 2500,
     spots: 2,
     imageKey: "sponsor",
@@ -264,16 +272,10 @@ export function formatCurrency(value: number): string {
 
 export function getCategoryStyles(category: ExperienceCategory): string {
   switch (category) {
-    case "SHAPE IT":
-      return "bg-violet-50 text-violet-700";
-    case "CONTRIBUTE":
+    case "SUPPORT":
+    case "SUPPORTER":
       return "bg-sky-50 text-sky-700";
-    case "CO-CREATE":
-      return "bg-fuchsia-50 text-fuchsia-700";
-    case "JOIN":
-    case "IN PERSON":
-    case "MULTI-DAY":
-      return "bg-rose-50 text-pink-600";
+    case "BEHIND THE SCENES":
     case "FOLLOW THE JOURNEY":
     case "ONLINE ACCESS":
     case "LIVE ONLINE":
@@ -282,12 +284,23 @@ export function getCategoryStyles(category: ExperienceCategory): string {
     case "ONLINE Q&A":
     case "ONLINE":
       return "bg-purple-50 text-purple-600";
-    case "PARTNER":
+    case "HELP SHAPE IT":
+    case "SHAPE IT":
+      return "bg-violet-50 text-violet-700";
+    case "TAKE PART":
+    case "CO-CREATE":
+    case "CONTRIBUTE":
+      return "bg-fuchsia-50 text-fuchsia-700";
+    case "JOIN IN PERSON":
+    case "JOIN":
+    case "IN PERSON":
+    case "MULTI-DAY":
+    case "WORK WITH ME":
+      return "bg-rose-50 text-pink-600";
     case "SPONSOR":
+    case "PARTNER":
     case "PRESENTING SPONSOR":
       return "bg-amber-50 text-amber-700";
-    case "SUPPORTER":
-      return "bg-sky-50 text-sky-700";
     default:
       return "bg-zinc-100 text-zinc-600";
   }

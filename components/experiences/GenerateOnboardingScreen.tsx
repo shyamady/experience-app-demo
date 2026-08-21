@@ -5,10 +5,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BackArrowIcon } from "@/components/icons/BackArrowIcon";
 import { AddExperiencePanel } from "@/components/experiences/AddExperiencePanel";
-import { MakeItHappenCard } from "@/components/experiences/MakeItHappenCard";
-import { PlanOfferCard } from "@/components/experiences/PlanOfferCard";
-import { PotentialIfBookedCard } from "@/components/experiences/PotentialIfBookedCard";
-import { ProjectPlanHero } from "@/components/experiences/ProjectPlanHero";
+import { PathToGoalCard } from "@/components/experiences/PathToGoalCard";
+import { PreviewOfferCard } from "@/components/experiences/PreviewOfferCard";
 import { WhatItTakesCard } from "@/components/experiences/WhatItTakesCard";
 import { AiOnboardingMessage } from "@/components/onboarding/AiOnboardingMessage";
 import { GenerationErrorCard } from "@/components/onboarding/GenerationErrorCard";
@@ -19,18 +17,34 @@ import {
 } from "@/components/onboarding/MobileStickyActionBar";
 import { OnboardingHeader } from "@/components/onboarding/OnboardingHeader";
 import { OnboardingProgress } from "@/components/onboarding/OnboardingProgress";
-import { isSponsorProduct } from "@/lib/dashboard/commerce";
+import { budgetLinesForProject } from "@/lib/launch/fallback";
+import { createLaunchFromOnboarding } from "@/lib/launch/storage";
 import {
   extractCityFromData,
+  EXPERIENCE_TEMPLATES,
+  EXPERIENCE_IMAGES,
   type ExperienceProduct,
 } from "@/lib/onboarding/experiences";
 import { getGeneratedLaunch } from "@/lib/onboarding/generated-launch";
 import { mapLaunchProducts } from "@/lib/onboarding/map-launch-products";
-import { getPlanMetrics } from "@/lib/onboarding/plan-math";
-import { getOnboardingData, getProjectCategoryLabel } from "@/lib/onboarding/storage";
-import { budgetLinesForProject } from "@/lib/launch/fallback";
-import { createLaunchFromOnboarding } from "@/lib/launch/storage";
+import {
+  buildPathToGoal,
+  formatMoney,
+  pathToGoalTotal,
+} from "@/lib/onboarding/plan-math";
+import {
+  getOnboardingData,
+  getProjectCategoryLabel,
+} from "@/lib/onboarding/storage";
 import { getPlaceholderImageUrl } from "@/lib/unsplash/search-photos";
+
+const GOAL_REACHED_STEPS = [
+  "Funding closes",
+  "Project is confirmed",
+  "Participants receive access based on their offer",
+  "Project begins",
+  "Updates are shared throughout the process",
+];
 
 export function GenerateOnboardingScreen() {
   const router = useRouter();
@@ -47,6 +61,11 @@ export function GenerateOnboardingScreen() {
   });
   const [hero, setHero] = useState(() => ({
     title: generated?.heroTitle ?? "Your project",
+    subtitle:
+      generated?.heroSubtitle ??
+      (generated?.goalValue
+        ? `${formatMoney(generated.goalValue)} needed to make it happen`
+        : ""),
     description: generated?.heroDescription ?? "",
     imageUrl:
       generated?.heroImageUrl ??
@@ -54,45 +73,33 @@ export function GenerateOnboardingScreen() {
       getPlaceholderImageUrl(),
   }));
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
   const [showAddPanel, setShowAddPanel] = useState(false);
 
-  const goalType = onboardingData.goalType ?? generated?.goalType ?? "funding";
-  const goalValue = onboardingData.goalUnsure
-    ? generated?.goalValue ||
-      onboardingData.goalValue ||
-      (goalType === "people" ? 50 : 10000)
-    : onboardingData.goalValue ||
-      generated?.goalValue ||
-      (goalType === "people" ? 50 : 10000);
+  const goalValue =
+    onboardingData.goalValue || generated?.goalValue || 2500;
 
-  const metrics = useMemo(
-    () => getPlanMetrics(products, goalType, goalValue),
-    [goalType, goalValue, products],
-  );
-  const participation = products.filter((product) => !isSponsorProduct(product));
-  const sponsors = products.filter((product) => isSponsorProduct(product));
   const budgetLines = useMemo(() => {
     if (generated?.budgetLines && generated.budgetLines.length > 0) {
       return generated.budgetLines;
     }
-    const total = goalType === "funding" ? goalValue : Math.max(8000, goalValue * 120);
     return budgetLinesForProject(
       onboardingData.activity,
       getProjectCategoryLabel(onboardingData.projectCategory) || undefined,
-      total,
+      goalValue,
     );
   }, [
     generated,
-    goalType,
     goalValue,
     onboardingData.activity,
     onboardingData.projectCategory,
   ]);
-  const estimatedNeed =
-    goalType === "funding"
-      ? goalValue
-      : budgetLines.reduce((sum, line) => sum + line.amount, 0) || metrics.revenue;
+
+  const pathLines = useMemo(
+    () => buildPathToGoal(products, goalValue),
+    [products, goalValue],
+  );
+  const pathTotal = pathToGoalTotal(pathLines);
+  const milestones = generated?.milestones ?? [];
 
   const handleRetry = useCallback(() => {
     router.push("/onboarding/generating");
@@ -109,6 +116,34 @@ export function GenerateOnboardingScreen() {
     [],
   );
 
+  const removeProduct = useCallback((id: string) => {
+    setProducts((previous) => previous.filter((product) => product.id !== id));
+    setEditingId((current) => (current === id ? null : current));
+  }, []);
+
+  const regenerateProduct = useCallback((id: string) => {
+    setProducts((previous) =>
+      previous.map((product) => {
+        if (product.id !== id) return product;
+        const template =
+          EXPERIENCE_TEMPLATES[
+            Math.floor(Math.random() * EXPERIENCE_TEMPLATES.length)
+          ];
+        return {
+          ...product,
+          title: template.title,
+          description: template.description,
+          price: template.price,
+          spots: template.spots,
+          category: template.category,
+          imageUrl: EXPERIENCE_IMAGES[template.imageKey],
+          howItHelps: template.howItHelps,
+          access: template.access,
+        };
+      }),
+    );
+  }, []);
+
   const handleCreateLaunch = useCallback(() => {
     createLaunchFromOnboarding(products, {
       title: hero.title,
@@ -118,53 +153,12 @@ export function GenerateOnboardingScreen() {
       suggestedMinimumGoal: generated?.suggestedGoalRange,
       estimatedBudget: generated?.estimatedBudget,
       budgetLines: generated?.budgetLines ?? budgetLines,
-      goalType,
+      milestones: generated?.milestones,
+      goalType: "funding",
       goalValue,
     });
     router.push("/dashboard/overview");
-  }, [budgetLines, generated, goalType, goalValue, hero, products, router]);
-
-  const handleDrop = useCallback(
-    (targetId: string) => {
-      if (!draggingId || draggingId === targetId) return;
-
-      setProducts((previous) => {
-        const items = [...previous];
-        const fromIndex = items.findIndex((item) => item.id === draggingId);
-        const toIndex = items.findIndex((item) => item.id === targetId);
-        if (fromIndex < 0 || toIndex < 0) return previous;
-
-        const [moved] = items.splice(fromIndex, 1);
-        items.splice(toIndex, 0, moved);
-        return items;
-      });
-      setDraggingId(null);
-    },
-    [draggingId],
-  );
-
-  function offerCard(product: ExperienceProduct, sponsor = false) {
-    return (
-      <PlanOfferCard
-        key={product.id}
-        product={product}
-        sponsor={sponsor}
-        isEditing={editingId === product.id}
-        isDragging={draggingId === product.id}
-        onToggleActive={(active) => updateProduct(product.id, { active })}
-        onEdit={() =>
-          setEditingId((current) =>
-            current === product.id ? null : product.id,
-          )
-        }
-        onUpdate={(updates) => updateProduct(product.id, updates)}
-        onDragStart={() => setDraggingId(product.id)}
-        onDragEnd={() => setDraggingId(null)}
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={() => handleDrop(product.id)}
-      />
-    );
-  }
+  }, [budgetLines, generated, goalValue, hero, products, router]);
 
   if (!generatedLaunch || generatedLaunch.status === "error") {
     return (
@@ -194,81 +188,193 @@ export function GenerateOnboardingScreen() {
       >
         <GradientGlow />
 
-        <div className="relative z-10 mx-auto w-full max-w-[720px] space-y-5">
+        <div className="relative z-10 mx-auto w-full max-w-[1080px] space-y-8">
           <AiOnboardingMessage
             compact
-            stepLabel="STEP 4 OF 4"
-            headline="Your Project Plan"
-            supportingText="Meuse turned your idea into something you can launch and sell. Everything here is a starting estimate you can edit."
+            stepLabel="PREVIEW · STEP 4 OF 4"
+            headline="Your campaign is ready to launch"
+            supportingText="One idea, turned into a project people can fund and join."
           />
 
-          <ProjectPlanHero
-            title={hero.title}
-            description={hero.description}
-            imageUrl={hero.imageUrl}
-            onChange={(updates) =>
-              setHero((current) => ({
-                ...current,
-                title: updates.title ?? current.title,
-                description: updates.description ?? current.description,
-                imageUrl: updates.imageUrl ?? current.imageUrl,
-              }))
-            }
-          />
-
-          <MakeItHappenCard goalType={goalType} goalValue={goalValue} />
+          <section className="overflow-hidden rounded-[2rem] bg-white shadow-meuse-card">
+            <div className="relative h-64 sm:h-80">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={hero.imageUrl}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <label className="absolute right-4 bottom-4 cursor-pointer rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-meuse-chip backdrop-blur-sm">
+                Change photo
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    setHero((current) => ({
+                      ...current,
+                      imageUrl: URL.createObjectURL(file),
+                    }));
+                  }}
+                />
+              </label>
+            </div>
+            <div className="px-5 py-7 sm:px-8 sm:py-9">
+              <input
+                value={hero.title}
+                onChange={(event) =>
+                  setHero((current) => ({
+                    ...current,
+                    title: event.target.value,
+                  }))
+                }
+                className="w-full bg-transparent text-3xl font-bold tracking-tight text-zinc-900 outline-none sm:text-5xl"
+              />
+              <input
+                value={hero.subtitle}
+                onChange={(event) =>
+                  setHero((current) => ({
+                    ...current,
+                    subtitle: event.target.value,
+                  }))
+                }
+                className="mt-3 w-full bg-transparent text-lg font-semibold text-pink-500 outline-none sm:text-xl"
+                placeholder={`${formatMoney(goalValue)} needed to make it happen`}
+              />
+              <textarea
+                value={hero.description}
+                onChange={(event) =>
+                  setHero((current) => ({
+                    ...current,
+                    description: event.target.value,
+                  }))
+                }
+                rows={3}
+                className="mt-4 w-full resize-none bg-transparent text-base leading-relaxed text-zinc-600 outline-none sm:text-lg"
+              />
+              <p className="mt-5 text-sm font-semibold text-zinc-400">
+                {formatMoney(goalValue)} funding target
+              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  offersRef.current?.scrollIntoView({ behavior: "smooth" })
+                }
+                className="mt-5 inline-flex rounded-full px-6 py-3 text-sm font-bold text-white meuse-gradient-bg shadow-lg shadow-pink-200/40"
+              >
+                See Ways to Join
+              </button>
+            </div>
+          </section>
 
           <WhatItTakesCard
             lines={budgetLines}
-            goalType={goalType}
+            goalType="funding"
             goalValue={goalValue}
           />
 
-          <div ref={offersRef} className="space-y-3">
+          <div ref={offersRef} className="space-y-4 scroll-mt-16">
             <div>
-              <h2 className="text-lg font-bold text-zinc-900">
-                Ways people can make this happen
+              <h2 className="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
+                Ways to Join
               </h2>
               <p className="mt-1 text-sm text-zinc-500">
-                These are the participation options Meuse suggests based on your goal.
+                Real offers people can buy — from light support to deep involvement.
               </p>
             </div>
-            {participation.map((product) => offerCard(product))}
+            <div className="grid gap-5 sm:grid-cols-2">
+              {products.map((product) => (
+                <PreviewOfferCard
+                  key={product.id}
+                  product={product}
+                  isEditing={editingId === product.id}
+                  onEdit={() =>
+                    setEditingId((current) =>
+                      current === product.id ? null : product.id,
+                    )
+                  }
+                  onRemove={() => removeProduct(product.id)}
+                  onRegenerate={() => regenerateProduct(product.id)}
+                  onToggleActive={(active) =>
+                    updateProduct(product.id, { active })
+                  }
+                  onUpdate={(updates) => updateProduct(product.id, updates)}
+                />
+              ))}
+            </div>
+
+            {showAddPanel ? (
+              <AddExperiencePanel
+                city={city}
+                onAdd={(product) =>
+                  setProducts((previous) => [...previous, product])
+                }
+                onClose={() => setShowAddPanel(false)}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowAddPanel(true)}
+                className="flex w-full items-center justify-center rounded-[1.5rem] border-2 border-dashed border-pink-200 py-5 text-sm font-medium text-pink-500 transition-colors hover:border-pink-300 hover:bg-rose-50"
+              >
+                + Add Offer
+              </button>
+            )}
           </div>
 
-          {showAddPanel ? (
-            <AddExperiencePanel
-              city={city}
-              onAdd={(product) =>
-                setProducts((previous) => [...previous, product])
-              }
-              onClose={() => setShowAddPanel(false)}
-            />
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowAddPanel(true)}
-              className="flex w-full items-center justify-center rounded-meuse border-2 border-dashed border-pink-200 py-5 text-sm font-medium text-pink-500 transition-colors hover:border-pink-300 hover:bg-rose-50"
-            >
-              Add another way to participate
-            </button>
-          )}
-
-          <PotentialIfBookedCard
-            potential={metrics.participantRevenue}
-            target={estimatedNeed}
-            onAdjust={() =>
-              offersRef.current?.scrollIntoView({ behavior: "smooth" })
-            }
+          <PathToGoalCard
+            lines={pathLines}
+            goalValue={goalValue}
+            total={pathTotal}
           />
 
-          {sponsors.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-bold text-zinc-900">
-                Sponsorship Opportunities
+          <section className="rounded-[1.75rem] bg-white px-5 py-6 shadow-meuse-card sm:px-6">
+            <h2 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl">
+              If we reach the goal
+            </h2>
+            <ol className="mt-5 space-y-3">
+              {GOAL_REACHED_STEPS.map((step, index) => (
+                <li key={step} className="flex gap-3">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-50 text-sm font-bold text-pink-600">
+                    {index + 1}
+                  </span>
+                  <p className="pt-0.5 text-sm font-medium text-zinc-800">
+                    {step}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          {milestones.length > 0 && (
+            <section className="rounded-[1.75rem] bg-white px-5 py-6 shadow-meuse-card sm:px-6">
+              <h2 className="text-xl font-bold tracking-tight text-zinc-900 sm:text-2xl">
+                Project timeline
               </h2>
-              {sponsors.map((product) => offerCard(product, true))}
-            </div>
+              <p className="mt-1 text-sm text-zinc-500">
+                What happens after the campaign is funded.
+              </p>
+              <ol className="mt-5 space-y-4">
+                {milestones.map((milestone, index) => (
+                  <li key={milestone.title} className="flex gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-zinc-600">
+                      {index + 1}
+                    </span>
+                    <div>
+                      <p className="text-sm font-bold text-zinc-900">
+                        {milestone.title}
+                      </p>
+                      <p className="mt-0.5 text-sm text-zinc-500">
+                        {milestone.description}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
           )}
 
           <div className="flex flex-col gap-2 pb-2">
@@ -277,7 +383,7 @@ export function GenerateOnboardingScreen() {
               onClick={handleCreateLaunch}
               className="inline-flex w-full items-center justify-center rounded-full px-6 py-3.5 text-sm font-bold text-white meuse-gradient-bg shadow-lg shadow-pink-200/50"
             >
-              Create My Launch
+              Create Campaign
             </button>
             <button
               type="button"
@@ -286,7 +392,7 @@ export function GenerateOnboardingScreen() {
               }
               className="w-full py-2 text-sm font-semibold text-zinc-500"
             >
-              Edit
+              Edit Project
             </button>
             <Link
               href="/onboarding/participation"
@@ -305,7 +411,7 @@ export function GenerateOnboardingScreen() {
 
       <MobileStickyActionBar
         backHref="/onboarding/participation"
-        continueLabel="Create My Launch"
+        continueLabel="Create Campaign"
         onContinueClick={handleCreateLaunch}
         canContinue
       />

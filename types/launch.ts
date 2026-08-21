@@ -25,6 +25,7 @@ export interface ProjectMilestone {
 
 export interface LaunchResponse {
   heroTitle: string;
+  heroSubtitle?: string;
   heroDescription: string;
   heroImageQuery: string;
   heroImageUrl?: string;

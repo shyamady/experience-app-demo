@@ -55,10 +55,10 @@ export function ParticipationOnboardingScreen() {
         <div className="relative z-10 mx-auto flex w-full max-w-[700px] flex-col gap-4">
           <AiOnboardingMessage
             compact
-            stepLabel="STEP 3 OF 4"
-            headline="How can your community help bring it to life?"
-            supportingText="Choose meaningful ways people can participate in the project."
-            hint="Select one or more"
+            stepLabel="OFFERS · STEP 3 OF 4"
+            headline="What kinds of offers should your project include?"
+            supportingText="Choose the experiences, involvement, and opportunities that would feel genuinely valuable to your community."
+            hint="We’ll turn your choices into specific offers with pricing and limited availability where appropriate."
           />
 
           <ParticipationOptions
